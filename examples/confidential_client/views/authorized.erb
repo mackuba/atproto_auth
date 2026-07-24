@@ -11,6 +11,23 @@
         </div>
       <% end %>
 
+      <% if session[:notice] %>
+        <div class="mb-8 bg-green-50 border-green-700 text-green-700 p-4 rounded-md">
+          <%= session[:notice] %>
+          <% session[:notice] = nil %>
+        </div>
+      <% end %>
+
+      <form method="post" action="/posts" class="flex flex-col py-4 space-y-4">
+        <fieldset>
+          <label for="post-text" class="mb-1 block text-gray-600 dark:text-gray-400 text-sm font-medium">New Bluesky post</label>
+          <textarea id="post-text" name="text" rows="4" maxlength="300" required placeholder="What's up?" class="w-full rounded-lg text-gray-700 dark:text-gray-100 bg-gray-100 dark:bg-gray-800 p-3 outline-none border-solid border-2 border-transparent hover:border-gray-400 focus:border-brand dark:hover:border-gray-500"></textarea>
+        </fieldset>
+        <div>
+          <button type="submit" class="py-2 px-6 rounded-lg cursor-pointer touch-manipulation tracking-wide bg-blue-400 text-white">Post to Bluesky</button>
+        </div>
+      </form>
+
       <div class="token-info">
         <p class="mb-1 text-gray-600 dark:text-gray-400 text-sm font-medium">Token Information</p>
         <pre class="rounded-lg text-gray-700 dark:text-gray-100 bg-gray-100 dark:bg-slate-800 border border-gray-400 p-2 overflow-auto"><code><%= JSON.pretty_generate(@session) %></code></pre>
