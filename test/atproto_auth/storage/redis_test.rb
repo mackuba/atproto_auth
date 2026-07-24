@@ -4,13 +4,19 @@ require_relative "../../test_helper"
 require_relative "storage_examples"
 
 describe AtprotoAuth::Storage::Redis do
-  let(:redis) { Redis.new(url: ENV.fetch("REDIS_URL", "redis://localhost:6379")) }
+  let(:redis) { Redis.new(url: ENV.fetch("REDIS_URL")) }
   let(:storage) { AtprotoAuth::Storage::Redis.new(redis_client: redis) }
 
   # Include shared storage implementation tests
   include AtprotoAuth::Test::StorageExamples
 
+  unless ENV["REDIS_URL"]
+    warn "** Set REDIS_URL to run Redis storage tests"
+  end
+    
   before do
+    skip unless ENV["REDIS_URL"]
+
     # Clear test keys before each test
     keys = redis.keys("atproto:*")
     redis.del(*keys) if keys.any?
@@ -59,7 +65,7 @@ describe AtprotoAuth::Storage::Redis do
   describe "locking" do
     after do
       # Clean up any leftover locks
-      redis.del("atproto:locks:atproto:test:lock")
+      redis.del("atproto:locks:atproto:test:lock") if ENV["REDIS_URL"]
     end
 
     it "creates lock with correct key prefix" do
