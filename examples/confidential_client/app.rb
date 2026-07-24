@@ -40,9 +40,15 @@ class ExampleApp < Sinatra::Base
     metadata_path = File.join(__dir__, "config", "client-metadata.json")
     metadata = JSON.parse(File.read(metadata_path))
 
+    client_id = metadata["client_id"]
+
+    if client_id.chomp("/") == "http://localhost"
+      client_id += "?scope=" + CGI.escape(metadata['scope']) + '&redirect_uri=' + CGI.escape(metadata["redirect_uris"][0])
+    end
+
     # Create OAuth client
     set :oauth_client, AtprotoAuth::Client.new(
-      client_id: metadata["client_id"],
+      client_id: client_id,
       redirect_uri: metadata["redirect_uris"][0],
       metadata: metadata,
       dpop_key: metadata["jwks"]["keys"][0]
@@ -57,7 +63,7 @@ class ExampleApp < Sinatra::Base
       key: "atproto.session",
       expire_after: 86_400, # 1 day in seconds
       secret: ENV.fetch("SESSION_SECRET") { SecureRandom.hex(32) },
-      secure: true,       # Only send over HTTPS
+      secure: ENV.fetch("RACK_ENV", "development") == "production",  # Only send over HTTPS
       httponly: true,     # Not accessible via JavaScript
       same_site: :lax     # CSRF protection
 
@@ -112,7 +118,7 @@ class ExampleApp < Sinatra::Base
       # Start authorization flow
       auth = settings.oauth_client.authorize(
         handle: handle,
-        scope: "atproto"
+        scope: "atproto repo:app.bsky.feed.post"
       )
 
       # Store session ID in user's browser session
@@ -185,6 +191,66 @@ class ExampleApp < Sinatra::Base
       session[:error] = "API call failed: #{e.message}"
       redirect "/"
     end
+  end
+
+  post "/posts" do
+    session_id = session[:oauth_session_id]
+    return redirect "/" unless check_stored_session(session_id)
+
+    text = params[:text].to_s
+    if text.strip.empty?
+      session[:error] = "Post text cannot be empty"
+      return redirect "/authorized"
+    end
+
+    if text.length > 300 || text.bytesize > 3_000
+      session[:error] = "Post text must be at most 300 characters and 3,000 bytes"
+      return redirect "/authorized"
+    end
+
+    oauth_session = settings.oauth_client.session_manager.get_session(session_id)
+    pds_url = ENV.fetch("PDS_URL") do
+      AtprotoAuth::Identity::Resolver.new.get_did_info(oauth_session.did).fetch(:pds)
+    end
+    endpoint = URI.join(
+      "#{pds_url.chomp("/")}/",
+      "xrpc/com.atproto.repo.createRecord"
+    ).to_s
+
+    headers = settings.oauth_client.auth_headers(
+      session_id: session_id,
+      method: "POST",
+      url: endpoint
+    )
+
+    conn = Faraday.new do |f|
+      f.request :json
+      f.response :json
+    end
+    response = conn.post(endpoint) do |req|
+      headers.each { |key, value| req.headers[key] = value }
+      req.body = {
+        repo: oauth_session.did,
+        collection: "app.bsky.feed.post",
+        record: {
+          "$type": "app.bsky.feed.post",
+          text: text,
+          langs: ['en'],
+          createdAt: Time.now.utc.iso8601(3)
+        }
+      }
+    end
+
+    unless response.success?
+      error_body = response.body.is_a?(String) ? response.body : JSON.generate(response.body)
+      raise "PDS rejected post (#{response.status}): #{error_body}"
+    end
+
+    session[:notice] = "Post published successfully"
+    redirect "/authorized"
+  rescue StandardError => e
+    session[:error] = "Publishing post failed: #{e.message}"
+    redirect "/authorized"
   end
 
   get "/signout" do

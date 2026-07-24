@@ -4,7 +4,7 @@
   "redirect_uris": ["https://YOUR_DOMAIN_HERE/callback"],
   "grant_types": ["authorization_code", "refresh_token"],
   "response_types": ["code"],
-  "scope": "atproto",
+  "scope": "atproto repo:app.bsky.feed.post",
   "token_endpoint_auth_method": "private_key_jwt",
   "token_endpoint_auth_signing_alg": "ES256",
   "application_type": "web",
