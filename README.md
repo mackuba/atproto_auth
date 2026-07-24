@@ -74,6 +74,9 @@ AtprotoAuth.configure do |config|
     redis_client: Redis.new(url: ENV['REDIS_URL'])
   )
 end
+
+# You will also need to add the Redis gem to the Gemfile:
+gem 'redis', '~> 5.4'
 ```
 
 ### Storage Backends

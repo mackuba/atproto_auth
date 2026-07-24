@@ -5,6 +5,7 @@ source "https://rubygems.org"
 # Specify your gem's dependencies in atproto_auth.gemspec
 gemspec
 
+gem "redis", "~> 5.4"
 gem "minitest", "~> 5.25"
 gem "minitest-reporters", "~> 1.7"
 gem "mocha", "~> 2.6"

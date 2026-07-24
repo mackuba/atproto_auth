@@ -1,6 +1,12 @@
 # frozen_string_literal: true
 
-require "redis"
+begin
+  require "redis"
+rescue LoadError
+  warn "Error: missing Redis adapter. Add this to your Gemfile:"
+  warn "  gem 'redis', '~> 5.4'"
+  raise
+end
 
 module AtprotoAuth
   module Storage
