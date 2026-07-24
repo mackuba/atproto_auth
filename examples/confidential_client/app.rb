@@ -40,9 +40,15 @@ class ExampleApp < Sinatra::Base
     metadata_path = File.join(__dir__, "config", "client-metadata.json")
     metadata = JSON.parse(File.read(metadata_path))
 
+    client_id = metadata["client_id"]
+
+    if client_id.chomp("/") == "http://localhost"
+      client_id += "?scope=" + CGI.escape(metadata['scope']) + '&redirect_uri=' + CGI.escape(metadata["redirect_uris"][0])
+    end
+
     # Create OAuth client
     set :oauth_client, AtprotoAuth::Client.new(
-      client_id: metadata["client_id"],
+      client_id: client_id,
       redirect_uri: metadata["redirect_uris"][0],
       metadata: metadata,
       dpop_key: metadata["jwks"]["keys"][0]
@@ -57,7 +63,7 @@ class ExampleApp < Sinatra::Base
       key: "atproto.session",
       expire_after: 86_400, # 1 day in seconds
       secret: ENV.fetch("SESSION_SECRET") { SecureRandom.hex(32) },
-      secure: true,       # Only send over HTTPS
+      secure: ENV.fetch("RACK_ENV", "development") == "production",  # Only send over HTTPS
       httponly: true,     # Not accessible via JavaScript
       same_site: :lax     # CSRF protection
 
