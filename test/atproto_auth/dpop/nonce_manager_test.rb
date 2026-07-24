@@ -64,7 +64,7 @@ describe AtprotoAuth::DPoP::NonceManager do
     end
 
     it "returns nil if no nonce exists for the server" do
-      _(nonce_manager.get(server_url)).must_equal nil
+      _(nonce_manager.get(server_url)).must_be_nil
     end
 
     it "returns nil if the nonce has expired" do
