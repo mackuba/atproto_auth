@@ -38,23 +38,6 @@ module AtprotoAuth
         raise NotImplementedError
       end
 
-      # Get multiple values
-      # @param keys [Array<String>] Storage keys
-      # @return [Hash<String, Object>] Key-value pairs
-      # @raise [StorageError] if operation fails
-      def multi_get(keys)
-        raise NotImplementedError
-      end
-
-      # Store multiple values
-      # @param hash [Hash<String, Object>] Key-value pairs
-      # @param ttl [Integer, nil] Time-to-live in seconds
-      # @return [Boolean] Success status
-      # @raise [StorageError] if operation fails
-      def multi_set(hash, ttl: nil)
-        raise NotImplementedError
-      end
-
       # Acquire a lock
       # @param key [String] Lock key
       # @param ttl [Integer] Lock timeout in seconds

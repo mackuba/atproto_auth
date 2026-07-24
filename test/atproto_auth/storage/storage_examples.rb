@@ -85,49 +85,6 @@ module AtprotoAuth
             end
           end
 
-          describe "batch operations" do
-            it "handles multi-get" do
-              storage.set("atproto:test:1", "value1")
-              storage.set("atproto:test:2", "value2")
-
-              result = storage.multi_get(["atproto:test:1", "atproto:test:2", "atproto:test:missing"])
-
-              assert_equal(
-                {
-                  "atproto:test:1" => "value1",
-                  "atproto:test:2" => "value2"
-                },
-                result
-              )
-            end
-
-            it "handles multi-set" do
-              values = {
-                "atproto:test:1" => "value1",
-                "atproto:test:2" => "value2"
-              }
-
-              assert storage.multi_set(values)
-              assert_equal "value1", storage.get("atproto:test:1")
-              assert_equal "value2", storage.get("atproto:test:2")
-            end
-
-            it "handles multi-set with TTL" do
-              values = {
-                "atproto:test:1" => "value1",
-                "atproto:test:2" => "value2"
-              }
-
-              assert storage.multi_set(values, ttl: 1)
-              assert_equal "value1", storage.get("atproto:test:1")
-              assert_equal "value2", storage.get("atproto:test:2")
-
-              sleep 1.1 # Wait for expiration
-              assert_nil storage.get("atproto:test:1")
-              assert_nil storage.get("atproto:test:2")
-            end
-          end
-
           describe "locking" do
             it "acquires and releases locks" do
               assert storage.acquire_lock("atproto:test:lock", ttl: 30)

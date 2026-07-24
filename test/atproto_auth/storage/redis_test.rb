@@ -54,19 +54,6 @@ describe AtprotoAuth::Storage::Redis do
       assert_operator ttl, :>=, 1
       assert_operator ttl, :<=, 2
     end
-
-    it "handles TTL in multi_set" do
-      storage.multi_set({
-                          "atproto:test:ttl1" => "value1",
-                          "atproto:test:ttl2" => "value2"
-                        }, ttl: 2)
-
-      ["atproto:test:ttl1", "atproto:test:ttl2"].each do |key|
-        ttl = redis.ttl(key)
-        assert_operator ttl, :>=, 1
-        assert_operator ttl, :<=, 2
-      end
-    end
   end
 
   describe "locking" do
@@ -117,38 +104,6 @@ describe AtprotoAuth::Storage::Redis do
           storage.with_lock("atproto:test:lock", ttl: 30) { true }
         end
       end
-    end
-  end
-
-  describe "atomic operations" do
-    it "performs multi_set atomically" do
-      storage.multi_set({
-                          "atproto:test:1" => "value1",
-                          "atproto:test:2" => "value2"
-                        })
-
-      # Both values should be set
-      assert_equal "value1", storage.get("atproto:test:1")
-      assert_equal "value2", storage.get("atproto:test:2")
-    end
-
-    it "rolls back multi_set if any operation fails" do
-      # Simulate failure on second operation
-      def storage.validate_key!(key)
-        raise AtprotoAuth::Storage::StorageError if key == "atproto:test:2"
-
-        super
-      end
-
-      assert_raises(AtprotoAuth::Storage::StorageError) do
-        storage.multi_set({
-                            "atproto:test:1" => "value1",
-                            "atproto:test:2" => "value2"
-                          })
-      end
-
-      # Value should not be set due to rollback
-      assert_nil storage.get("atproto:test:1")
     end
   end
 end

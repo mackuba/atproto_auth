@@ -49,38 +49,6 @@ module AtprotoAuth
         raise RedisError, "Failed to check existence: #{e.message}"
       end
 
-      def multi_get(keys)
-        keys.each { |key| validate_key!(key) }
-
-        values = @redis_client.mget(keys)
-        result = {}
-
-        # Only include non-nil values in result hash
-        keys.zip(values).each do |key, value|
-          next if value.nil? || value == ""
-
-          result[key] = value
-        end
-
-        result
-      rescue ::Redis::BaseError => e
-        raise RedisError, "Failed to get multiple values: #{e.message}"
-      end
-
-      def multi_set(hash, ttl: nil)
-        hash.each_key { |key| validate_key!(key) }
-        validate_ttl!(ttl) if ttl
-
-        @redis_client.multi do |tx|
-          hash.each do |key, value|
-            tx.set(key, value, ex: ttl)
-          end
-        end
-        true
-      rescue ::Redis::BaseError => e
-        raise RedisError, "Failed to set multiple values: #{e.message}"
-      end
-
       def acquire_lock(key, ttl:)
         validate_key!(key)
         validate_ttl!(ttl)

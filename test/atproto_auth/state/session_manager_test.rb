@@ -222,14 +222,6 @@ describe AtprotoAuth::State::SessionManager do
           raise AtprotoAuth::Storage::StorageError, "Storage failure"
         end
 
-        def multi_get(*)
-          raise AtprotoAuth::Storage::StorageError, "Storage failure"
-        end
-
-        def multi_set(*)
-          raise AtprotoAuth::Storage::StorageError, "Storage failure"
-        end
-
         def acquire_lock(*)
           false
         end

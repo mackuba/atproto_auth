@@ -125,14 +125,6 @@ class CustomStorage < AtprotoAuth::Storage::Interface
     # Implementation
   end
 
-  def multi_get(keys)
-    # Implementation
-  end
-
-  def multi_set(hash, ttl: nil)
-    # Implementation
-  end
-
   def acquire_lock(key, ttl:)
     # Implementation
   end

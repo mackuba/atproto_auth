@@ -58,31 +58,6 @@ module AtprotoAuth
         end
       end
 
-      def multi_get(keys)
-        keys.each { |key| validate_key!(key) }
-
-        @monitor.synchronize do
-          result = {}
-          keys.each do |key|
-            result[key] = @data[key] if @data.key?(key) && !expired?(key)
-          end
-          result
-        end
-      end
-
-      def multi_set(hash, ttl: nil)
-        hash.each_key { |key| validate_key!(key) }
-        validate_ttl!(ttl)
-
-        @monitor.synchronize do
-          hash.each do |key, value|
-            @data[key] = value
-            set_expiration(key, ttl) if ttl
-          end
-          true
-        end
-      end
-
       def acquire_lock(key, ttl:)
         validate_key!(key)
         validate_ttl!(ttl)
