@@ -63,19 +63,9 @@ describe AtprotoAuth::Storage::Redis do
     end
 
     it "creates lock with correct key prefix" do
-      storage.acquire_lock("atproto:test:lock", ttl: 30)
-      assert redis.exists?("atproto:locks:atproto:test:lock")
-    end
-
-    it "prevents duplicate lock acquisition" do
-      storage.acquire_lock("atproto:test:lock", ttl: 30)
-      refute storage.acquire_lock("atproto:test:lock", ttl: 30)
-    end
-
-    it "releases lock properly" do
-      storage.acquire_lock("atproto:test:lock", ttl: 30)
-      assert storage.release_lock("atproto:test:lock")
-      refute redis.exists?("atproto:locks:atproto:test:lock")
+      storage.with_lock("atproto:test:lock", ttl: 30) do
+        assert redis.exists?("atproto:locks:atproto:test:lock")
+      end
     end
 
     it "ensures lock is released after block execution" do

@@ -58,29 +58,6 @@ module AtprotoAuth
         end
       end
 
-      def acquire_lock(key, ttl:)
-        validate_key!(key)
-        validate_ttl!(ttl)
-        lock_key = "lock:#{key}"
-
-        @monitor.synchronize do
-          return false if @locks[lock_key] && !lock_expired?(lock_key)
-
-          @locks[lock_key] = Time.now.to_i + ttl
-          true
-        end
-      end
-
-      def release_lock(key)
-        validate_key!(key)
-        lock_key = "lock:#{key}"
-
-        @monitor.synchronize do
-          @locks.delete(lock_key)
-          true
-        end
-      end
-
       def with_lock(key, ttl: 30)
         raise ArgumentError, "Block required" unless block_given?
 
@@ -103,6 +80,29 @@ module AtprotoAuth
       end
 
       private
+
+      def acquire_lock(key, ttl:)
+        validate_key!(key)
+        validate_ttl!(ttl)
+        lock_key = "lock:#{key}"
+
+        @monitor.synchronize do
+          return false if @locks[lock_key] && !lock_expired?(lock_key)
+
+          @locks[lock_key] = Time.now.to_i + ttl
+          true
+        end
+      end
+
+      def release_lock(key)
+        validate_key!(key)
+        lock_key = "lock:#{key}"
+
+        @monitor.synchronize do
+          @locks.delete(lock_key)
+          true
+        end
+      end
 
       def expired?(key)
         return false unless @expirations.key?(key)

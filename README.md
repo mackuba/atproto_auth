@@ -125,14 +125,6 @@ class CustomStorage < AtprotoAuth::Storage::Interface
     # Implementation
   end
 
-  def acquire_lock(key, ttl:)
-    # Implementation
-  end
-
-  def release_lock(key)
-    # Implementation
-  end
-
   def with_lock(key, ttl: 30)
     # Implementation
   end

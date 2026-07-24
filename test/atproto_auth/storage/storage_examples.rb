@@ -86,31 +86,24 @@ module AtprotoAuth
           end
 
           describe "locking" do
-            it "acquires and releases locks" do
-              assert storage.acquire_lock("atproto:test:lock", ttl: 30)
-              refute storage.acquire_lock("atproto:test:lock", ttl: 30)
-              assert storage.release_lock("atproto:test:lock")
-              assert storage.acquire_lock("atproto:test:lock", ttl: 30)
-            end
-
-            it "expires locks after TTL" do
-              assert storage.acquire_lock("atproto:test:lock", ttl: 1)
-              refute storage.acquire_lock("atproto:test:lock", ttl: 30)
-
-              sleep 1.1 # Wait for expiration
-              assert storage.acquire_lock("atproto:test:lock", ttl: 30)
-            end
-
             it "executes blocks with locks" do
               result = storage.with_lock("atproto:test:lock", ttl: 30) do
-                # Verify lock is held
-                refute storage.acquire_lock("atproto:test:lock", ttl: 30)
                 "success"
               end
 
               assert_equal "success", result
-              # Verify lock is released
-              assert storage.acquire_lock("atproto:test:lock", ttl: 30)
+              assert storage.with_lock("atproto:test:lock", ttl: 30) { true }
+            end
+
+            it "expires locks after TTL" do
+              storage.with_lock("atproto:test:lock", ttl: 1) do
+                assert_raises(AtprotoAuth::Storage::LockError) do
+                  storage.with_lock("atproto:test:lock", ttl: 30) { true }
+                end
+
+                sleep 1.1 # Wait for expiration
+                assert storage.with_lock("atproto:test:lock", ttl: 30) { true }
+              end
             end
 
             it "releases locks after block even if error raised" do
@@ -120,8 +113,7 @@ module AtprotoAuth
                 end
               end
 
-              # Verify lock is released
-              assert storage.acquire_lock("atproto:test:lock", ttl: 30)
+              assert storage.with_lock("atproto:test:lock", ttl: 30) { true }
             end
 
             it "requires block for with_lock" do
@@ -147,18 +139,24 @@ module AtprotoAuth
 
             it "handles concurrent lock acquisition" do
               success_count = 0
+              fail_count = 0
+
               threads = 10.times.map do
                 Thread.new do
-                  if storage.acquire_lock("atproto:test:lock", ttl: 1)
-                    success_count += 1
-                    sleep 0.1
-                    storage.release_lock("atproto:test:lock")
+                  begin
+                    storage.with_lock("atproto:test:lock", ttl: 30) do
+                      success_count += 1
+                      sleep 0.1
+                    end
+                  rescue AtprotoAuth::Storage::LockError
+                    fail_count += 1
                   end
                 end
               end
 
               threads.each(&:join)
               assert_equal 1, success_count
+              assert_equal 9, fail_count
             end
           end
         end

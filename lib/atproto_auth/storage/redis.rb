@@ -49,6 +49,23 @@ module AtprotoAuth
         raise RedisError, "Failed to check existence: #{e.message}"
       end
 
+      def with_lock(key, ttl: 30)
+        raise ArgumentError, "Block required" unless block_given?
+
+        acquired = acquire_lock(key, ttl: ttl)
+        raise LockError, "Failed to acquire lock" unless acquired
+
+        begin
+          yield
+        ensure
+          release_lock(key)
+        end
+      rescue ::Redis::BaseError => e
+        raise RedisError, "Lock operation failed: #{e.message}"
+      end
+
+      private
+
       def acquire_lock(key, ttl:)
         validate_key!(key)
         validate_ttl!(ttl)
@@ -66,21 +83,6 @@ module AtprotoAuth
         @redis_client.del(lock_key).positive?
       rescue ::Redis::BaseError => e
         raise RedisError, "Failed to release lock: #{e.message}"
-      end
-
-      def with_lock(key, ttl: 30)
-        raise ArgumentError, "Block required" unless block_given?
-
-        acquired = acquire_lock(key, ttl: ttl)
-        raise LockError, "Failed to acquire lock" unless acquired
-
-        begin
-          yield
-        ensure
-          release_lock(key)
-        end
-      rescue ::Redis::BaseError => e
-        raise RedisError, "Lock operation failed: #{e.message}"
       end
     end
   end

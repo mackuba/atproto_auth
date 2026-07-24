@@ -222,14 +222,6 @@ describe AtprotoAuth::State::SessionManager do
           raise AtprotoAuth::Storage::StorageError, "Storage failure"
         end
 
-        def acquire_lock(*)
-          false
-        end
-
-        def release_lock(*)
-          true
-        end
-
         def with_lock(*)
           yield if block_given?
         end

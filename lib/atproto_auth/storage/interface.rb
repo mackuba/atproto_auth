@@ -38,23 +38,6 @@ module AtprotoAuth
         raise NotImplementedError
       end
 
-      # Acquire a lock
-      # @param key [String] Lock key
-      # @param ttl [Integer] Lock timeout in seconds
-      # @return [Boolean] True if lock acquired
-      # @raise [StorageError] if operation fails
-      def acquire_lock(key, ttl:)
-        raise NotImplementedError
-      end
-
-      # Release a lock
-      # @param key [String] Lock key
-      # @return [Boolean] Success status
-      # @raise [StorageError] if operation fails
-      def release_lock(key)
-        raise NotImplementedError
-      end
-
       # Execute block with lock
       # @param key [String] Lock key
       # @param ttl [Integer] Lock timeout in seconds

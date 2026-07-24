@@ -52,7 +52,7 @@ bundle exec ruby scripts/generate_keys.rb > config/keys.json
 openssl rand -base64 32
 openssl rand -hex 32
 
-cat > .env 
+cat > .env
 ATPROTO_MASTER_KEY=<base64 value from first command>
 SESSION_SECRET=<hex value from second command>
 ```
@@ -71,7 +71,7 @@ SESSION_SECRET=<hex value from second command>
 
 ```bash
 # Your application's domain name
-export PERMITTED_DOMAIN=your.domain.com 
+export PERMITTED_DOMAIN=your.domain.com
 # or 127.0.0.1 for localhost testing
 
 # Optional: Redis URL for production storage

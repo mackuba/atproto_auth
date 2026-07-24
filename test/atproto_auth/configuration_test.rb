@@ -25,8 +25,6 @@ describe AtprotoAuth::Configuration do
         def get(key); end
         def delete(key); end
         def exists?(key); end
-        def acquire_lock(key, ttl:); end
-        def release_lock(key); end
         def with_lock(key, ttl: 30); end
       end.new
 
