@@ -9,39 +9,55 @@ This is an example implementation of a confidential OAuth client for the AT Prot
 ## Overview
 
 The example implements a simple web application using Sinatra that:
-- Allows users to sign in with their AT Protocol handle (@handle)
+
+- Allows users to sign in with their AT Protocol handle (@handle) and make a test Bluesky post
 - Implements the complete OAuth authorization flow
 - Uses DPoP-bound tokens for API requests
 - Demonstrates secure session management with encryption
 - Shows how to make authenticated API calls to Bluesky
 - Provides examples of both development and production storage configurations
+- Supports running on localhost
 
 ## Requirements
 
 - Ruby 3.0+
 - Bundler
-- A domain name for your application that matches your client metadata
+- A domain name for your application that matches your client metadata (required for production)
 - SSL certificate for your domain (required for production)
 - Redis (optional, recommended for production)
 
 ## Setup
 
 1. Clone the repository and navigate to the example directory:
+
 ```bash
 cd examples/confidential_client
 ```
 
 2. Install dependencies:
+
 ```bash
 bundle install
 ```
 
 3. Generate EC keys for client authentication:
+
 ```bash
 bundle exec ruby scripts/generate_keys.rb > config/keys.json
 ```
 
-4. Configure your client metadata:
+4. Generate session & encryption keys:
+
+```bash
+openssl rand -base64 32
+openssl rand -hex 32
+
+cat > .env 
+ATPROTO_MASTER_KEY=<base64 value from first command>
+SESSION_SECRET=<hex value from second command>
+```
+
+5. Configure your client metadata:
    - Copy the example metadata file over:
      ```
      cp config/client-metadata.example.json config/client-metadata.json
@@ -49,14 +65,14 @@ bundle exec ruby scripts/generate_keys.rb > config/keys.json
    - Set the correct `client_id` URL where your metadata will be hosted
    - Configure valid `redirect_uris` for your application
    - Add your generated keys from step 3 to the `jwks` field
+   - For localhost testing, set `client_id` to `http://localhost/` and `redirect_uris` to `["http://127.0.0.1:9292/callback"]`
 
-5. Set up environment variables:
+6. Set up environment variables:
+
 ```bash
-# Required for session encryption
-export SESSION_SECRET=your-secure-session-secret 
-
 # Your application's domain name
 export PERMITTED_DOMAIN=your.domain.com 
+# or 127.0.0.1 for localhost testing
 
 # Optional: Redis URL for production storage
 export REDIS_URL=redis://localhost:6379
