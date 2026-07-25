@@ -65,12 +65,12 @@ GEM
       tilt (~> 2.0)
     sorted_set (1.1.0)
       rbtree
+    sqlite3 (2.9.5-arm64-darwin)
     tilt (2.8.0)
     uri (1.1.1)
 
 PLATFORMS
   arm64-darwin-24
-  ruby
 
 DEPENDENCIES
   atproto_auth!
@@ -82,6 +82,7 @@ DEPENDENCIES
   redis
   sinatra
   sinatra-contrib
+  sqlite3 (~> 2.9)
 
 BUNDLED WITH
   4.0.17

@@ -1,4 +1,5 @@
 .env
 /config/client-metadata.json
 /config/keys.json
+/db/
 /public/client-metadata.json

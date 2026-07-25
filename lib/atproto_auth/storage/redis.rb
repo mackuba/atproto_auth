@@ -22,7 +22,7 @@ module AtprotoAuth
 
       def set(key, value, ttl: nil)
         validate_key!(key)
-        validate_ttl!(ttl) if ttl
+        validate_ttl!(ttl)
 
         @redis_client.set(key, value, ex: ttl)
         true

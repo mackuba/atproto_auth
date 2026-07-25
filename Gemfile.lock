@@ -79,6 +79,7 @@ GEM
     ruby2_keywords (0.0.5)
     sorted_set (1.1.0)
       rbtree
+    sqlite3 (2.9.5-arm64-darwin)
     tsort (0.2.0)
     unicode-display_width (3.2.0)
       unicode-emoji (~> 4.1)
@@ -90,7 +91,6 @@ GEM
 
 PLATFORMS
   arm64-darwin-24
-  ruby
 
 DEPENDENCIES
   atproto_auth!
@@ -102,6 +102,7 @@ DEPENDENCIES
   rbs (~> 3.6)
   redis (~> 5.4)
   rubocop (~> 1.21)
+  sqlite3 (~> 2.9)
   webmock (~> 3.24)
 
 BUNDLED WITH

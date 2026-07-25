@@ -15,7 +15,9 @@ require "atproto_auth/pkce"
 require "atproto_auth/storage/interface"
 require "atproto_auth/storage/key_builder"
 require "atproto_auth/storage/memory"
-require "atproto_auth/storage/redis"
+
+AtprotoAuth::Storage.autoload :Redis, "atproto_auth/storage/redis"
+AtprotoAuth::Storage.autoload :SQLite, "atproto_auth/storage/sqlite"
 
 require "atproto_auth/server_metadata"
 require "atproto_auth/server_metadata/origin_url"

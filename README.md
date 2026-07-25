@@ -15,7 +15,7 @@ A Ruby implementation of the [AT Protocol OAuth specification](https://atproto.c
 - Comprehensive identity resolution and verification
 - Automatic token refresh and session management
 - Robust error handling and recovery mechanisms
-- Configurable storage backends with built-in Redis support
+- Configurable storage backends with built-in SQLite and Redis support
 - Encrypted storage of sensitive data
 
 ## Installation
@@ -43,7 +43,7 @@ gem install atproto_auth
 - Ruby 3.2 or higher
 - OpenSSL support
 - For confidential clients: HTTPS-capable domain for client metadata hosting
-- Optional: Redis 5.0+ for production storage backend
+- Optional: SQLite or Redis storage adapter gems for production use
 
 ## Basic Usage
 
@@ -67,15 +67,8 @@ AtprotoAuth.configure do |config|
   config.storage = AtprotoAuth::Storage::Memory.new
 end
 
-# For production environments, use Redis storage:
-AtprotoAuth.configure do |config|
-  # Configure Redis storage
-  config.storage = AtprotoAuth::Storage::Redis.new(
-    redis_client: Redis.new(url: ENV['REDIS_URL'])
-  )
-end
-
-# You will also need to add the Redis gem to the Gemfile:
+# Storage adapter gems are optional dependencies. Add one of these:
+gem 'sqlite3', '~> 2.9'
 gem 'redis', '~> 5.4'
 ```
 
@@ -84,6 +77,7 @@ gem 'redis', '~> 5.4'
 The library supports multiple storage backends for managing OAuth state:
 
 #### In-Memory Storage (Default)
+
 ```ruby
 # Default configuration - good for development
 AtprotoAuth.configure do |config|
@@ -91,9 +85,30 @@ AtprotoAuth.configure do |config|
 end
 ```
 
-#### Redis Storage (Recommended for Production)
+#### SQLite Storage
+
+SQLite can be used for persistent storage in development or in production setups with
+low-to-moderate write concurrency:
+
 ```ruby
-# Redis configuration - recommended for production
+AtprotoAuth.configure do |config|
+  config.storage = AtprotoAuth::Storage::SQLite.new(
+    path: '/var/lib/my_app/atproto_auth.sqlite3'
+  )
+end
+```
+
+Add the adapter gem to your Gemfile:
+
+```ruby
+gem 'sqlite3', '~> 2.9'
+```
+
+#### Redis Storage
+
+Use Redis for production deployments with multiple hosts or write-heavy scenarios:
+
+```ruby
 require 'redis'
 
 AtprotoAuth.configure do |config|
@@ -106,6 +121,12 @@ AtprotoAuth.configure do |config|
     redis_client: redis_client
   )
 end
+```
+
+Add the adapter gem to your Gemfile:
+
+```ruby
+gem 'redis', '~> 5.4'
 ```
 
 #### Custom Storage Implementation

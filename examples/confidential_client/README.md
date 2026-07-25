@@ -24,7 +24,7 @@ The example implements a simple web application using Sinatra that:
 - Bundler
 - A domain name for your application that matches your client metadata (required for production)
 - SSL certificate for your domain (required for production)
-- Redis (optional, recommended for production)
+- optionally, Redis for production
 
 ## Setup
 
@@ -74,7 +74,13 @@ SESSION_SECRET=<hex value from second command>
 export PERMITTED_DOMAIN=your.domain.com
 # or 127.0.0.1 for localhost testing
 
-# Optional: Redis URL for production storage
+# Select a storage backend: memory (default), sqlite, or redis
+export STORAGE_BACKEND=sqlite
+
+# Optional SQLite path (defaults to ./db/atproto_auth.sqlite3)
+export SQLITE_PATH=/var/lib/my-app/atproto_auth.sqlite3
+
+# Required when STORAGE_BACKEND=redis
 export REDIS_URL=redis://localhost:6379
 ```
 
@@ -82,9 +88,12 @@ export REDIS_URL=redis://localhost:6379
 
 ### Storage Configuration
 
-The example app supports both in-memory and Redis storage backends:
+The example app supports in-memory, SQLite and Redis storage backends. Select
+one by passing `STORAGE_BACKEND=memory`, `STORAGE_BACKEND=sqlite`, or
+`STORAGE_BACKEND=redis`.
 
-#### Development (In-Memory Storage)
+#### In-memory storage (for development)
+
 ```ruby
 # config/development.rb
 AtprotoAuth.configure do |config|
@@ -93,7 +102,19 @@ AtprotoAuth.configure do |config|
 end
 ```
 
-#### Production (Redis Storage)
+#### SQLite storage
+
+SQLite can be used for persistent storage in development or in low traffic production setups:
+
+```bash
+export STORAGE_BACKEND=sqlite
+export SQLITE_PATH=/var/lib/my-app/atproto_auth.sqlite3
+```
+
+#### Redis storage
+
+Use Redis in more complex production setups:
+
 ```ruby
 # config/production.rb
 require 'redis'
@@ -179,12 +200,14 @@ This will start the server on `http://localhost:9292`.
    - Ensure your client authentication is working
 
 4. "Storage errors":
+   - For SQLite storage, verify the database path is writable
    - For Redis storage, verify Redis connection settings
    - Check Redis SSL configuration if using encrypted connections
    - Ensure proper Redis authentication credentials if required
 
 5. "Session state lost":
    - Verify storage configuration is correct
+   - Check that SQLite storage is on persistent local disk
    - Check Redis connection stability if using Redis storage
    - Ensure session TTLs are appropriately configured
 
@@ -192,7 +215,7 @@ This will start the server on `http://localhost:9292`.
 
 The example demonstrates several important concepts:
 
-1. **Secure Storage**: The app shows proper configuration of both development (in-memory) and production (Redis) storage backends.
+1. **Secure Storage**: The app shows proper configuration of in-memory, SQLite and Redis storage.
 
 2. **Token Management**: All tokens are stored securely with encryption in the configured storage backend.
 

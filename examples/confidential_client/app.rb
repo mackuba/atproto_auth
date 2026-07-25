@@ -25,15 +25,24 @@ class ExampleApp < Sinatra::Base
   configure do
     # Configure AtprotoAuth settings
     AtprotoAuth.configure do |config|
-      config.http_client = AtprotoAuth::HttpClient.new(
-        timeout: 10,
-        verify_ssl: true
-      )
+      config.http_client = AtprotoAuth::HttpClient.new(timeout: 10, verify_ssl: true)
       config.default_token_lifetime = 300
       config.dpop_nonce_lifetime = 300
 
-      # Optionally, use Redis storage instead of in-memory
-      # config.storage = AtprotoAuth::Storage::Redis.new
+      case ENV.fetch("STORAGE_BACKEND", "memory")
+      when "memory"
+        config.storage = AtprotoAuth::Storage::Memory.new
+      when "sqlite"
+        config.storage = AtprotoAuth::Storage::SQLite.new(
+          path: ENV.fetch("SQLITE_PATH", File.join(__dir__, "db", "atproto_auth.sqlite3"))
+        )
+      when "redis"
+        config.storage = AtprotoAuth::Storage::Redis.new(
+          redis_client: Redis.new(url: ENV.fetch("REDIS_URL"))
+        )
+      else
+        raise "STORAGE_BACKEND must be memory, sqlite, or redis"
+      end
     end
 
     # Load client metadata
@@ -43,7 +52,9 @@ class ExampleApp < Sinatra::Base
     client_id = metadata["client_id"]
 
     if client_id.chomp("/") == "http://localhost"
-      client_id += "?scope=" + CGI.escape(metadata['scope']) + '&redirect_uri=' + CGI.escape(metadata["redirect_uris"][0])
+      scope = CGI.escape(metadata["scope"])
+      redirect_uri = CGI.escape(metadata["redirect_uris"][0])
+      client_id += "?scope=#{scope}&redirect_uri=#{redirect_uri}"
     end
 
     # Create OAuth client
@@ -235,7 +246,7 @@ class ExampleApp < Sinatra::Base
         record: {
           "$type": "app.bsky.feed.post",
           text: text,
-          langs: ['en'],
+          langs: ["en"],
           createdAt: Time.now.utc.iso8601(3)
         }
       }
