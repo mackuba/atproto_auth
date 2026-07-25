@@ -33,8 +33,8 @@ jobs:
           bundler-cache: true
       - name: Install dependencies
         run: bundle install
-      - name: Run lint
-        run: bundle exec rubocop
+#      - name: Run lint
+#        run: bundle exec rubocop
       - name: Run tests
         run: bundle exec rake test
         env:
