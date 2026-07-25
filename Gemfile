@@ -15,3 +15,6 @@ gem "redis", "~> 5.4"
 gem "rubocop", "~> 1.21"
 gem "sqlite3", "~> 2.9"
 gem "webmock", "~> 3.24"
+
+# force an older version that works with Ruby 3.2
+gem "parallel", "~> 1.28"
