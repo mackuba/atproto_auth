@@ -129,7 +129,7 @@ class ExampleApp < Sinatra::Base
       # Start authorization flow
       auth = settings.oauth_client.authorize(
         handle: handle,
-        scope: "atproto repo:app.bsky.feed.post"
+        scope: "atproto include:my.bulletin.permissions"
       )
 
       # Store session ID in user's browser session
@@ -223,9 +223,10 @@ class ExampleApp < Sinatra::Base
     pds_url = ENV.fetch("PDS_URL") do
       AtprotoAuth::Identity::Resolver.new.get_did_info(oauth_session.did).fetch(:pds)
     end
+
     endpoint = URI.join(
       "#{pds_url.chomp("/")}/",
-      "xrpc/com.atproto.repo.createRecord"
+      "xrpc/com.atproto.space.createRecord"
     ).to_s
 
     headers = settings.oauth_client.auth_headers(
@@ -238,15 +239,19 @@ class ExampleApp < Sinatra::Base
       f.request :json
       f.response :json
     end
+
     response = conn.post(endpoint) do |req|
       headers.each { |key, value| req.headers[key] = value }
       req.body = {
+        space: "at://did:plc:muiaegrpiq3awz5iqwt53h76/space/my.bulletin.board/self",
         repo: oauth_session.did,
-        collection: "app.bsky.feed.post",
+        collection: "my.bulletin.post",
         record: {
-          "$type": "app.bsky.feed.post",
+          "$type": "my.bulletin.post",
           text: text,
-          langs: ["en"],
+          color: "blue",
+          position: { x: rand(800), y: rand(700) },
+          rotation: 5,
           createdAt: Time.now.utc.iso8601(3)
         }
       }
