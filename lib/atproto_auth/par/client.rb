@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "cgi"
+
 module AtprotoAuth
   module PAR
     # Client for making Pushed Authorization Requests (PAR) according to RFC 9126.

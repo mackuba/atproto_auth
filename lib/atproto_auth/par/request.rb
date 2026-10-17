@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "cgi"
+
 module AtprotoAuth
   module PAR
     # Represents a pushed authorization request

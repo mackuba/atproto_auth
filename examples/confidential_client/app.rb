@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "cgi"
 require "sinatra/base"
 require "sinatra/reloader"
 require "atproto_auth"
