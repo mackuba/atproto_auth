@@ -311,18 +311,6 @@ module AuthProto
         dpop_client: @dpop_client
       )
 
-      signing_key = if client_metadata.jwks && !client_metadata.jwks["keys"].empty?
-                      key_data = client_metadata.jwks["keys"].first
-                      JOSE::JWK.from_map(key_data)
-                    else
-                      JOSE::JWK.generate_key([:ec, "P-256"])
-                    end
-
-      client_assertion = PAR::ClientAssertion.new(
-        client_id: client_id,
-        signing_key: signing_key
-      )
-
       # Build PAR request
       par_request = PAR::Request.build do |config|
         config.client_id = client_id
@@ -335,11 +323,13 @@ module AuthProto
         config.code_challenge = session.pkce_challenge
         config.code_challenge_method = "S256"
 
-        # Add client assertion
-        config.client_assertion = client_assertion.generate_jwt(
-          audience: auth_server.issuer
-        )
-        config.client_assertion_type = PAR::CLIENT_ASSERTION_TYPE
+        # Public clients use PKCE and DPoP without client authentication.
+        if client_metadata.confidential?
+          signing_key = JOSE::JWK.from_map(client_metadata.jwks.fetch("keys").first)
+          client_assertion = PAR::ClientAssertion.new(client_id: client_id, signing_key: signing_key)
+          config.client_assertion = client_assertion.generate_jwt(audience: auth_server.issuer)
+          config.client_assertion_type = PAR::CLIENT_ASSERTION_TYPE
+        end
 
         # Add DPoP proof
         proof = @dpop_client.generate_proof(
