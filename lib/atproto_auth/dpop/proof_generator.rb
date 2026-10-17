@@ -101,12 +101,6 @@ module AuthProto
         digest = OpenSSL::Digest::SHA256.digest(access_token)
         Base64.urlsafe_encode64(digest, padding: false)
       end
-
-      def encode_jwt_segments(header, payload)
-        encoded_header = Base64.urlsafe_encode64(JSON.generate(header), padding: false)
-        encoded_payload = Base64.urlsafe_encode64(JSON.generate(payload), padding: false)
-        "#{encoded_header}.#{encoded_payload}"
-      end
     end
   end
 end

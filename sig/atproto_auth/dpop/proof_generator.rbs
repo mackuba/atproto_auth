@@ -35,8 +35,6 @@ module AuthProto
       def normalize_uri: (String uri) -> String
 
       def generate_access_token_hash: (String access_token) -> String
-
-      def encode_jwt_segments: (Hash[Symbol, untyped] header, Hash[Symbol, untyped] payload) -> String
     end
   end
 end

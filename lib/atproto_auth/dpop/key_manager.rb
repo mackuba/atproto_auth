@@ -174,62 +174,6 @@ module AuthProto
       rescue StandardError => e
         raise KeyError, "Key validation failed: #{e.message}"
       end
-
-      def sign_message(message)
-        # Create SHA-256 digest of message
-        digest = OpenSSL::Digest::SHA256.digest(message)
-
-        # Get EC key from JOSE JWK
-        ec_key = extract_ec_key
-
-        # Sign using ECDSA
-        signature = ec_key.sign(OpenSSL::Digest.new("SHA256"), digest)
-
-        # Convert to raw r|s format required for JWTs
-        asn1_to_raw(signature)
-      end
-
-      def extract_ec_key
-        # Extract the raw EC key from JOSE JWK
-        key_data = @keypair.to_map
-        raise KeyError, "Private key required for signing" unless key_data["d"] # Private key component
-
-        group = OpenSSL::PKey::EC::Group.new("prime256v1")
-        key = OpenSSL::PKey::EC.new(group)
-
-        # Convert base64url to hex string for BN
-        d = bin_to_hex(Base64.urlsafe_decode64(key_data["d"]))
-        x = bin_to_hex(Base64.urlsafe_decode64(key_data["x"]))
-        y = bin_to_hex(Base64.urlsafe_decode64(key_data["y"]))
-
-        # Create BNs from hex strings
-        key.private_key = OpenSSL::BN.new(d, 16)
-
-        # Set public key point
-        point = OpenSSL::PKey::EC::Point.new(group)
-        point.set_to_keypair(x, y)
-        key.public_key = point
-
-        key
-      end
-
-      def bin_to_hex(binary)
-        binary.unpack1("H*")
-      end
-
-      def asn1_to_raw(signature)
-        # Parse ASN.1 signature
-        asn1 = OpenSSL::ASN1.decode(signature)
-        r = asn1.value[0].value.to_s(2)
-        s = asn1.value[1].value.to_s(2)
-
-        # Pad r and s to 32 bytes each
-        r = r.rjust(32, "\x00")
-        s = s.rjust(32, "\x00")
-
-        # Concatenate r|s
-        r + s
-      end
     end
   end
 end
