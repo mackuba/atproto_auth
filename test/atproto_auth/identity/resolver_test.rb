@@ -9,6 +9,7 @@ describe AtprotoAuth::Identity::Resolver do
   let(:pds_url) { "https://pds.test.com" }
 
   before do
+    Resolv::DNS.any_instance.stubs(:getaddresses).returns([Resolv::IPv4.create("93.184.216.34")])
     AtprotoAuth.configure do |configuration|
       configuration.http_client = AtprotoAuth::HttpClient.new
     end
@@ -38,7 +39,7 @@ describe AtprotoAuth::Identity::Resolver do
       end
 
       def mock_dns.getaddresses(_name)
-        []
+        [Resolv::IPv4.create("93.184.216.34")]
       end
 
       # Stub DNS resolution and PLC document
@@ -244,7 +245,7 @@ describe AtprotoAuth::Identity::Resolver do
     end
 
     def mock_dns.getaddresses(*)
-      []
+      [Resolv::IPv4.create("93.184.216.34")]
     end
 
     Resolv::DNS.stub :new, mock_dns do

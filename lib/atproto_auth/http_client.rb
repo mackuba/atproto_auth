@@ -16,6 +16,8 @@ module AtprotoAuth
       IPAddr.new("169.254.0.0/16"), # Link-local
       IPAddr.new("172.16.0.0/12"),  # Private network
       IPAddr.new("192.168.0.0/16"), # Private network
+      IPAddr.new("::/128"),         # Unspecified IPv6 address
+      IPAddr.new("::1/128"),        # IPv6 loopback
       IPAddr.new("fc00::/7"),       # Unique local address
       IPAddr.new("fe80::/10")       # Link-local address
     ].freeze
@@ -105,19 +107,26 @@ module AtprotoAuth
     end
 
     def validate_ip!(uri)
-      # Check if host is an IP address by trying to parse it
-      if uri.host =~ /^(\d{1,3}\.){3}\d{1,3}$/
-        begin
-          ip = IPAddr.new(uri.host)
-          raise SSRFError, "Request to forbidden IP address" if forbidden_ip?(ip)
-        rescue IPAddr::InvalidAddressError
-          # Not a valid IP, will be handled as hostname below
+      # URI#hostname removes brackets from IPv6 literals.
+      begin
+        parsed_ip = IPAddr.new(uri.hostname)
+      rescue IPAddr::InvalidAddressError
+        parsed_ip = nil
+      end
+
+      if parsed_ip
+        if forbidden_ip?(parsed_ip)
+          raise SSRFError, "Request to forbidden IP address"
+        else
+          return
         end
       end
 
       # Also check resolved IPs for hostnames
       begin
-        ips = Resolv::DNS.new.getaddresses(uri.host)
+        ips = Resolv::DNS.new.getaddresses(uri.hostname)
+        raise SSRFError, "Could not resolve hostname" if ips.empty?
+
         ips.each do |x|
           ip_addr = IPAddr.new(x.to_s)
           raise SSRFError, "Request to forbidden IP address" if forbidden_ip?(ip_addr)
@@ -130,6 +139,7 @@ module AtprotoAuth
     end
 
     def forbidden_ip?(ip)
+      ip = ip.native if ip.ipv4_mapped?
       FORBIDDEN_IP_RANGES.any? { |range| range.include?(ip) }
     end
 

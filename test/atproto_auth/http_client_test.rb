@@ -7,6 +7,10 @@ describe AtprotoAuth::HttpClient do
   let(:sample_url) { "https://example.com/resource" }
   let(:private_ip) { "192.168.1.1" }
 
+  before do
+    Resolv::DNS.any_instance.stubs(:getaddresses).returns([Resolv::IPv4.create("93.184.216.34")])
+  end
+
   describe "request validation" do
     it "rejects non-HTTPS URLs" do
       assert_raises(AtprotoAuth::HttpClient::SSRFError) do
@@ -33,6 +37,24 @@ describe AtprotoAuth::HttpClient do
       assert_raises(AtprotoAuth::HttpClient::SSRFError) do
         client.get("https://#{private_ip}/")
       end
+    end
+
+    it "rejects loopback and IPv4-mapped IPv6 addresses" do
+      %w[127.0.0.1 127.10.20.30 [::1] [::ffff:127.0.0.1]].each do |host|
+        assert_raises(AtprotoAuth::HttpClient::SSRFError) { client.get("https://#{host}/") }
+      end
+    end
+
+    it "rejects hostnames resolving to any forbidden address" do
+      Resolv::DNS.any_instance.stubs(:getaddresses).returns([
+                                                              Resolv::IPv4.create("93.184.216.34"), Resolv::IPv6.create("::1")
+                                                            ])
+      assert_raises(AtprotoAuth::HttpClient::SSRFError) { client.get(sample_url) }
+    end
+
+    it "rejects hostnames without resolved addresses" do
+      Resolv::DNS.any_instance.stubs(:getaddresses).returns([])
+      assert_raises(AtprotoAuth::HttpClient::SSRFError) { client.get(sample_url) }
     end
   end
 
