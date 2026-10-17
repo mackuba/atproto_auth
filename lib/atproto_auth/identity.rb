@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module AtprotoAuth
+module AuthProto
   # Handles identity resolution, verification and management for AT Protocol OAuth.
   # This module provides functionality to resolve handles to DIDs, verify identity
   # documents, validate PDS locations, and verify authorization server bindings.

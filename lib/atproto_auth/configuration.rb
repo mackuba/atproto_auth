@@ -2,10 +2,10 @@
 
 require "logger"
 
-module AtprotoAuth
+module AuthProto
   class ConfigurationError < Error; end
 
-  # Configuration class for global AtprotoAuth settings
+  # Configuration class for global AuthProto settings
   class Configuration
     attr_accessor :default_token_lifetime,
                   :dpop_nonce_lifetime,
@@ -20,7 +20,7 @@ module AtprotoAuth
       @encryption = nil
       @http_client = nil
       @logger = Logger.new($stdout)
-      @storage = AtprotoAuth::Storage::Memory.new
+      @storage = AuthProto::Storage::Memory.new
     end
 
     # Validates the current configuration
@@ -35,7 +35,7 @@ module AtprotoAuth
 
     def validate_storage!
       raise ConfigurationError, "Storage must be configured" if @storage.nil?
-      return if @storage.is_a?(AtprotoAuth::Storage::Interface)
+      return if @storage.is_a?(AuthProto::Storage::Interface)
 
       raise ConfigurationError, "Storage must implement Storage::Interface"
     end

@@ -11,7 +11,7 @@ rescue LoadError
   raise
 end
 
-module AtprotoAuth
+module AuthProto
   module Storage
     # SQLite storage implementation
     class SQLite < Interface

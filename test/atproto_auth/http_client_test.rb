@@ -2,8 +2,8 @@
 
 require_relative "../test_helper"
 
-describe AtprotoAuth::HttpClient do
-  let(:client) { AtprotoAuth::HttpClient.new }
+describe AuthProto::HttpClient do
+  let(:client) { AuthProto::HttpClient.new }
   let(:sample_url) { "https://example.com/resource" }
   let(:private_ip) { "192.168.1.1" }
 
@@ -13,19 +13,19 @@ describe AtprotoAuth::HttpClient do
 
   describe "request validation" do
     it "rejects non-HTTPS URLs" do
-      assert_raises(AtprotoAuth::HttpClient::SSRFError) do
+      assert_raises(AuthProto::HttpClient::SSRFError) do
         client.get("http://example.com")
       end
     end
 
     it "rejects URLs with fragments" do
-      assert_raises(AtprotoAuth::HttpClient::SSRFError) do
+      assert_raises(AuthProto::HttpClient::SSRFError) do
         client.get("https://example.com#fragment")
       end
     end
 
     it "rejects URLs without hosts" do
-      assert_raises(AtprotoAuth::HttpClient::SSRFError) do
+      assert_raises(AuthProto::HttpClient::SSRFError) do
         client.get("https:///resource")
       end
     end
@@ -34,14 +34,14 @@ describe AtprotoAuth::HttpClient do
       stub_request(:get, "https://#{private_ip}/")
         .to_return(status: 200, body: "")
 
-      assert_raises(AtprotoAuth::HttpClient::SSRFError) do
+      assert_raises(AuthProto::HttpClient::SSRFError) do
         client.get("https://#{private_ip}/")
       end
     end
 
     it "rejects loopback and IPv4-mapped IPv6 addresses" do
       %w[127.0.0.1 127.10.20.30 [::1] [::ffff:127.0.0.1]].each do |host|
-        assert_raises(AtprotoAuth::HttpClient::SSRFError) { client.get("https://#{host}/") }
+        assert_raises(AuthProto::HttpClient::SSRFError) { client.get("https://#{host}/") }
       end
     end
 
@@ -49,12 +49,12 @@ describe AtprotoAuth::HttpClient do
       Resolv::DNS.any_instance.stubs(:getaddresses).returns([
                                                               Resolv::IPv4.create("93.184.216.34"), Resolv::IPv6.create("::1")
                                                             ])
-      assert_raises(AtprotoAuth::HttpClient::SSRFError) { client.get(sample_url) }
+      assert_raises(AuthProto::HttpClient::SSRFError) { client.get(sample_url) }
     end
 
     it "rejects hostnames without resolved addresses" do
       Resolv::DNS.any_instance.stubs(:getaddresses).returns([])
-      assert_raises(AtprotoAuth::HttpClient::SSRFError) { client.get(sample_url) }
+      assert_raises(AuthProto::HttpClient::SSRFError) { client.get(sample_url) }
     end
   end
 
@@ -106,18 +106,18 @@ describe AtprotoAuth::HttpClient do
       stub_request(:get, sample_url)
         .to_return(status: 302, headers: { "Location" => sample_url })
 
-      assert_raises(AtprotoAuth::HttpClient::HttpError) do
+      assert_raises(AuthProto::HttpClient::HttpError) do
         client.get(sample_url)
       end
     end
 
     it "rejects oversized responses" do
-      large_response = "x" * (AtprotoAuth::HttpClient::MAX_RESPONSE_SIZE + 1)
+      large_response = "x" * (AuthProto::HttpClient::MAX_RESPONSE_SIZE + 1)
 
       stub_request(:get, sample_url)
         .to_return(status: 200, body: large_response)
 
-      assert_raises(AtprotoAuth::HttpClient::HttpError) do
+      assert_raises(AuthProto::HttpClient::HttpError) do
         client.get(sample_url)
       end
     end
@@ -186,12 +186,12 @@ describe AtprotoAuth::HttpClient do
   end
 
   describe "timeout handling" do
-    let(:client) { AtprotoAuth::HttpClient.new(timeout: 1) }
+    let(:client) { AuthProto::HttpClient.new(timeout: 1) }
 
     it "handles read timeouts" do
       stub_request(:get, sample_url).to_timeout
 
-      assert_raises(AtprotoAuth::HttpClient::HttpError) do
+      assert_raises(AuthProto::HttpClient::HttpError) do
         client.get(sample_url)
       end
     end
@@ -199,14 +199,14 @@ describe AtprotoAuth::HttpClient do
 
   describe "SSL verification" do
     it "verifies SSL certificates by default" do
-      client = AtprotoAuth::HttpClient.new
+      client = AuthProto::HttpClient.new
       http = Net::HTTP.new("example.com")
       client.send(:configure_http_client!, http)
       assert_equal OpenSSL::SSL::VERIFY_PEER, http.verify_mode
     end
 
     it "can disable SSL verification" do
-      client = AtprotoAuth::HttpClient.new(verify_ssl: false)
+      client = AuthProto::HttpClient.new(verify_ssl: false)
       http = Net::HTTP.new("example.com")
       client.send(:configure_http_client!, http)
       assert_equal OpenSSL::SSL::VERIFY_NONE, http.verify_mode

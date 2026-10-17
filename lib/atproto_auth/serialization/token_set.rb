@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module AtprotoAuth
+module AuthProto
   module Serialization
     # Handles serialization of TokenSet objects
     class TokenSet < Base
@@ -11,7 +11,7 @@ module AtprotoAuth
       private
 
       def validate_object!(obj)
-        return if obj.is_a?(AtprotoAuth::State::TokenSet)
+        return if obj.is_a?(AuthProto::State::TokenSet)
 
         raise ValidationError,
               "Expected TokenSet object, got #{obj.class}"
@@ -29,7 +29,7 @@ module AtprotoAuth
       end
 
       def deserialize_data(data)
-        AtprotoAuth::State::TokenSet.new(
+        AuthProto::State::TokenSet.new(
           access_token: data["access_token"],
           refresh_token: data["refresh_token"],
           token_type: data["token_type"],

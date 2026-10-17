@@ -2,8 +2,8 @@
 
 require_relative "../test_helper"
 
-describe AtprotoAuth::InsecureHttpClient do
-  let(:client) { AtprotoAuth::InsecureHttpClient.new }
+describe AuthProto::InsecureHttpClient do
+  let(:client) { AuthProto::InsecureHttpClient.new }
 
   it "supports GET and POST over HTTP and HTTPS at public and local destinations" do
     urls = %w[
@@ -22,9 +22,9 @@ describe AtprotoAuth::InsecureHttpClient do
   end
 
   it "uses the same shared client for remote identity discovery and local requests" do
-    previous_configuration = AtprotoAuth.configuration
-    AtprotoAuth.reset_configuration!
-    AtprotoAuth.configure { |config| config.http_client = client }
+    previous_configuration = AuthProto.configuration
+    AuthProto.reset_configuration!
+    AuthProto.configure { |config| config.http_client = client }
     Resolv::DNS.any_instance.stubs(:getresources).returns([])
     stub_request(:get, "https://alice.example.com/.well-known/atproto-did")
       .to_return(status: 200, body: "did:plc:alice")
@@ -33,11 +33,11 @@ describe AtprotoAuth::InsecureHttpClient do
     }.to_json)
     stub_request(:post, "http://localhost:9292/token").to_return(status: 200, body: "local")
 
-    result = AtprotoAuth::Identity::Resolver.new.resolve_handle("alice.example.com")
+    result = AuthProto::Identity::Resolver.new.resolve_handle("alice.example.com")
     _(result[:did]).must_equal "did:plc:alice"
-    _(AtprotoAuth.configuration.http_client.post("http://localhost:9292/token")[:body]).must_equal "local"
+    _(AuthProto.configuration.http_client.post("http://localhost:9292/token")[:body]).must_equal "local"
   ensure
-    AtprotoAuth.configuration = previous_configuration
+    AuthProto.configuration = previous_configuration
   end
 
   it "follows GET and POST redirects between HTTPS and local HTTP" do
@@ -54,13 +54,13 @@ describe AtprotoAuth::InsecureHttpClient do
 
   it "still rejects unsupported schemes, missing hosts and fragments" do
     %w[ftp://localhost/test file:///tmp/test https:///test http://localhost/test#fragment].each do |url|
-      _(-> { client.get(url) }).must_raise AtprotoAuth::HttpClient::SSRFError
+      _(-> { client.get(url) }).must_raise AuthProto::HttpClient::SSRFError
     end
   end
 
   it "keeps HTTPS certificate verification enabled and honors timeouts" do
     http = Net::HTTP.new("example.com")
-    configured = AtprotoAuth::InsecureHttpClient.new(timeout: 3)
+    configured = AuthProto::InsecureHttpClient.new(timeout: 3)
     configured.send(:configure_http_client!, http)
     _(http.use_ssl?).must_equal true
     _(http.verify_mode).must_equal OpenSSL::SSL::VERIFY_PEER
@@ -71,8 +71,8 @@ describe AtprotoAuth::InsecureHttpClient do
   it "retains response size limits" do
     url = "http://localhost:9292/test"
     stub_request(:get, url).to_return(status: 200, headers: {
-                                        "Content-Length" => (AtprotoAuth::HttpClient::MAX_RESPONSE_SIZE + 1).to_s
+                                        "Content-Length" => (AuthProto::HttpClient::MAX_RESPONSE_SIZE + 1).to_s
                                       })
-    _(-> { client.get(url) }).must_raise AtprotoAuth::HttpClient::HttpError
+    _(-> { client.get(url) }).must_raise AuthProto::HttpClient::HttpError
   end
 end

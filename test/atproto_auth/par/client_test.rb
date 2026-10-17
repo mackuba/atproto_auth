@@ -2,19 +2,19 @@
 
 require_relative "../../test_helper"
 
-describe AtprotoAuth::PAR::Client do
+describe AuthProto::PAR::Client do
   before do
     @endpoint = "https://auth.example.com/par"
     @dpop_client = mock("dpop_client")
     @nonce_manager = mock("nonce_manager")
     @dpop_client.stubs(:nonce_manager).returns(@nonce_manager)
-    @client = AtprotoAuth::PAR::Client.new(endpoint: @endpoint, dpop_client: @dpop_client)
+    @client = AuthProto::PAR::Client.new(endpoint: @endpoint, dpop_client: @dpop_client)
   end
 
   describe "#initialize" do
     it "raises an error if endpoint is not HTTPS" do
-      assert_raises(AtprotoAuth::PAR::Error) do
-        AtprotoAuth::PAR::Client.new(endpoint: "http://auth.example.com/par", dpop_client: @dpop_client)
+      assert_raises(AuthProto::PAR::Error) do
+        AuthProto::PAR::Client.new(endpoint: "http://auth.example.com/par", dpop_client: @dpop_client)
       end
     end
 
@@ -37,14 +37,14 @@ describe AtprotoAuth::PAR::Client do
       @http_client = mock("http_client")
       @http_client.stubs(:get)
       @http_client.stubs(:post).returns(@response)
-      AtprotoAuth.configure do |configuration|
+      AuthProto.configure do |configuration|
         configuration.http_client = @http_client
       end
     end
 
     it "submits the PAR request and returns a Response object on success" do
       response = @client.submit(@request)
-      assert_instance_of AtprotoAuth::PAR::Response, response
+      assert_instance_of AuthProto::PAR::Response, response
       assert_equal "mocked_uri", response.request_uri
       assert_equal 3600, response.expires_in
     end
@@ -52,15 +52,15 @@ describe AtprotoAuth::PAR::Client do
     it "retries the request with a nonce if the response indicates 'use_dpop_nonce'" do
       error_response = { status: 400, body: '{"error":"use_dpop_nonce"}', headers: { "DPoP-Nonce" => "new_nonce" } }
       @nonce_manager.expects(:update).with(nonce: "new_nonce", server_url: @server_origin)
-      AtprotoAuth.configuration.http_client.stubs(:post).returns(error_response).then.returns(@response)
+      AuthProto.configuration.http_client.stubs(:post).returns(error_response).then.returns(@response)
 
       response = @client.submit(@request)
-      assert_instance_of AtprotoAuth::PAR::Response, response
+      assert_instance_of AuthProto::PAR::Response, response
     end
 
     it "raises an error if the response is invalid" do
-      AtprotoAuth.configuration.http_client.stubs(:post).returns({ status: 400, body: '{"error":"invalid_request"}' })
-      assert_raises(AtprotoAuth::PAR::Error) { @client.submit(@request) }
+      AuthProto.configuration.http_client.stubs(:post).returns({ status: 400, body: '{"error":"invalid_request"}' })
+      assert_raises(AuthProto::PAR::Error) { @client.submit(@request) }
     end
   end
 

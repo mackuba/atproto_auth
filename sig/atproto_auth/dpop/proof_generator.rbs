@@ -1,14 +1,14 @@
-module AtprotoAuth
+module AuthProto
   module DPoP
     class ProofGenerator
-      @key_manager: AtprotoAuth::DPoP::KeyManager
+      @key_manager: AuthProto::DPoP::KeyManager
 
-      class ProofError < AtprotoAuth::Error
+      class ProofError < AuthProto::Error
       end
 
-      attr_reader key_manager: AtprotoAuth::DPoP::KeyManager
+      attr_reader key_manager: AuthProto::DPoP::KeyManager
 
-      def initialize: (AtprotoAuth::DPoP::KeyManager key_manager) -> void
+      def initialize: (AuthProto::DPoP::KeyManager key_manager) -> void
 
       def generate: (
           http_method: String,

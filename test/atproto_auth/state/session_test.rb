@@ -2,13 +2,13 @@
 
 require_relative "../../test_helper"
 
-describe AtprotoAuth::State::Session do
+describe AuthProto::State::Session do
   let(:client_id) { "test_client_id" }
   let(:scope) { "read write" }
   let(:auth_server) { nil }
   let(:did) { "did:example:1234" }
   let(:tokens) do
-    AtprotoAuth::State::TokenSet.new(
+    AuthProto::State::TokenSet.new(
       access_token: "valid_access_token",
       token_type: "DPoP",
       expires_in: 3600,
@@ -18,7 +18,7 @@ describe AtprotoAuth::State::Session do
     )
   end
   let(:session) do
-    AtprotoAuth::State::Session.new(client_id: client_id, scope: scope, auth_server: auth_server, did: did)
+    AuthProto::State::Session.new(client_id: client_id, scope: scope, auth_server: auth_server, did: did)
   end
 
   describe "#initialize" do
@@ -37,7 +37,7 @@ describe AtprotoAuth::State::Session do
     end
 
     it "generates unique session_id and state_token" do
-      another_session = AtprotoAuth::State::Session.new(client_id: client_id, scope: scope)
+      another_session = AuthProto::State::Session.new(client_id: client_id, scope: scope)
       _(session.session_id).wont_equal another_session.session_id
       _(session.state_token).wont_equal another_session.state_token
     end
@@ -55,7 +55,7 @@ describe AtprotoAuth::State::Session do
 
       it "raises an error if setting a different authorization server" do
         new_server = mock("AuthorizationServer", issuer: "https://auth2.example.com")
-        assert_raises(AtprotoAuth::State::SessionError) do
+        assert_raises(AuthProto::State::SessionError) do
           session.authorization_server = new_server
         end
       end
@@ -75,7 +75,7 @@ describe AtprotoAuth::State::Session do
 
     it "raises an error if setting a different DID" do
       new_did = "did:example:5678"
-      assert_raises(AtprotoAuth::State::SessionError) do
+      assert_raises(AuthProto::State::SessionError) do
         session.did = new_did
       end
     end
@@ -88,20 +88,20 @@ describe AtprotoAuth::State::Session do
     end
 
     it "sets the DID if it was not previously set" do
-      session_without_did = AtprotoAuth::State::Session.new(client_id: client_id, scope: scope)
+      session_without_did = AuthProto::State::Session.new(client_id: client_id, scope: scope)
       session_without_did.tokens = tokens
       _(session_without_did.did).must_equal tokens.sub
     end
 
     it "raises an error if the tokens' subject does not match the session DID" do
-      mismatched_tokens = AtprotoAuth::State::TokenSet.new(
+      mismatched_tokens = AuthProto::State::TokenSet.new(
         access_token: "valid_access_token",
         token_type: "DPoP",
         expires_in: 3600,
         scope: scope,
         sub: "did:example:5678"
       )
-      assert_raises(AtprotoAuth::State::SessionError) do
+      assert_raises(AuthProto::State::SessionError) do
         session.tokens = mismatched_tokens
       end
     end
@@ -118,7 +118,7 @@ describe AtprotoAuth::State::Session do
     end
 
     it "returns false if tokens are expired" do
-      expired_tokens = AtprotoAuth::State::TokenSet.new(
+      expired_tokens = AuthProto::State::TokenSet.new(
         access_token: "expired_access_token",
         token_type: "DPoP",
         expires_in: 1,
@@ -142,7 +142,7 @@ describe AtprotoAuth::State::Session do
     end
 
     it "returns false if tokens are not renewable" do
-      non_renewable_tokens = AtprotoAuth::State::TokenSet.new(
+      non_renewable_tokens = AuthProto::State::TokenSet.new(
         access_token: "valid_access_token",
         token_type: "DPoP",
         expires_in: 3600,

@@ -1,4 +1,4 @@
-# AtprotoAuth
+# AuthProto
 
 [![Gem Version](https://img.shields.io/gem/v/atproto_auth.svg)](https://rubygems.org/gems/atproto_auth)
 [![Ruby Style Guide](https://img.shields.io/badge/code_style-rubocop-blue.svg)](https://github.com/rubocop/rubocop)
@@ -52,9 +52,9 @@ gem install atproto_auth
 ```ruby
 require 'atproto_auth'
 
-AtprotoAuth.configure do |config|
+AuthProto.configure do |config|
   # Configure HTTP client settings
-  config.http_client = AtprotoAuth::HttpClient.new(
+  config.http_client = AuthProto::HttpClient.new(
     timeout: 10,
     verify_ssl: true
   )
@@ -64,7 +64,7 @@ AtprotoAuth.configure do |config|
   config.dpop_nonce_lifetime = 300  # 5 minutes
 
   # Configure storage backend (default is in-memory)
-  config.storage = AtprotoAuth::Storage::Memory.new
+  config.storage = AuthProto::Storage::Memory.new
 end
 
 # Storage adapter gems are optional dependencies. Add one of these:
@@ -78,8 +78,8 @@ For debugging a flow that needs both local HTTP and remote HTTPS (handle/PLC
 resolution, metadata discovery and OAuth requests), explicitly select:
 
 ```ruby
-AtprotoAuth.configure do |config|
-  config.http_client = AtprotoAuth::InsecureHttpClient.new(timeout: 10)
+AuthProto.configure do |config|
+  config.http_client = AuthProto::InsecureHttpClient.new(timeout: 10)
 end
 ```
 
@@ -100,8 +100,8 @@ The library supports multiple storage backends for managing OAuth state:
 
 ```ruby
 # Default configuration - good for development
-AtprotoAuth.configure do |config|
-  config.storage = AtprotoAuth::Storage::Memory.new
+AuthProto.configure do |config|
+  config.storage = AuthProto::Storage::Memory.new
 end
 ```
 
@@ -111,8 +111,8 @@ SQLite can be used for persistent storage in development or in production setups
 low-to-moderate write concurrency:
 
 ```ruby
-AtprotoAuth.configure do |config|
-  config.storage = AtprotoAuth::Storage::SQLite.new(
+AuthProto.configure do |config|
+  config.storage = AuthProto::Storage::SQLite.new(
     path: '/var/lib/my_app/atproto_auth.sqlite3'
   )
 end
@@ -131,13 +131,13 @@ Use Redis for production deployments with multiple hosts or write-heavy scenario
 ```ruby
 require 'redis'
 
-AtprotoAuth.configure do |config|
+AuthProto.configure do |config|
   redis_client = Redis.new(
     url: ENV['REDIS_URL'],
     ssl_params: { verify_mode: OpenSSL::SSL::VERIFY_PEER }
   )
   
-  config.storage = AtprotoAuth::Storage::Redis.new(
+  config.storage = AuthProto::Storage::Redis.new(
     redis_client: redis_client
   )
 end
@@ -152,7 +152,7 @@ gem 'redis', '~> 5.4'
 #### Custom Storage Implementation
 ```ruby
 # Implement your own storage backend
-class CustomStorage < AtprotoAuth::Storage::Interface
+class CustomStorage < AuthProto::Storage::Interface
   def set(key, value, ttl: nil)
     # Implementation
   end
@@ -181,7 +181,7 @@ Here's a basic example of using the library in a confidential client application
 
 ```ruby
 # Initialize client with metadata
-client = AtprotoAuth::Client.new(
+client = AuthProto::Client.new(
   client_id: "https://app.example.com/client-metadata.json",
   redirect_uri: "https://app.example.com/callback",
   metadata: {
@@ -225,7 +225,7 @@ See `examples/confidential_client/README.md` for setup instructions and implemen
 ### Public Client Example
 
 ```ruby
-client = AtprotoAuth::Client.new(
+client = AuthProto::Client.new(
   client_id: "https://app.example.com/client-metadata.json",
   redirect_uri: "https://app.example.com/callback"
 )

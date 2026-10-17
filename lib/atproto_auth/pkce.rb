@@ -4,7 +4,7 @@ require "securerandom"
 require "base64"
 require "openssl"
 
-module AtprotoAuth
+module AuthProto
   # Implementation of Proof Key for Code Exchange (PKCE) for OAuth 2.0 / AT Protocol
   # as specified in RFC 7636.
   #
@@ -16,7 +16,7 @@ module AtprotoAuth
   # Only the S256 challenge method is supported, as required by AT Protocol OAuth.
   module PKCE
     # Error raised for PKCE-related failures
-    class Error < AtprotoAuth::Error; end
+    class Error < AuthProto::Error; end
 
     # Minimum and maximum lengths for code verifier as per RFC 7636
     MIN_VERIFIER_LENGTH = 43

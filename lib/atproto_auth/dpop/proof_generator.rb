@@ -3,7 +3,7 @@
 require "securerandom"
 require "time"
 
-module AtprotoAuth
+module AuthProto
   module DPoP
     # Creates and manages DPoP proof JWTs according to RFC 9449.
     # DPoP proofs are used to prove possession of a key when making
@@ -11,7 +11,7 @@ module AtprotoAuth
     # the request and is signed by the DPoP key.
     class ProofGenerator
       # Error raised for proof generation/validation issues
-      class ProofError < AtprotoAuth::Error; end
+      class ProofError < AuthProto::Error; end
 
       # @return [KeyManager] The key manager used for signing proofs
       attr_reader :key_manager

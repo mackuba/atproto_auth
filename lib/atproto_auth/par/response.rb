@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module AtprotoAuth
+module AuthProto
   module PAR
     # Represents a PAR response
     class Response

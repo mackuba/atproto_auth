@@ -1,4 +1,4 @@
-module AtprotoAuth
+module AuthProto
   module PAR
     class Response
       @request_uri: String

@@ -1,6 +1,6 @@
-module AtprotoAuth
+module AuthProto
   module PKCE
-    class Error < AtprotoAuth::Error
+    class Error < AuthProto::Error
     end
 
     MIN_VERIFIER_LENGTH: Integer

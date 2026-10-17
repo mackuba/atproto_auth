@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module AtprotoAuth
+module AuthProto
   module State
     # Represents a set of OAuth tokens and their associated metadata
     class TokenSet

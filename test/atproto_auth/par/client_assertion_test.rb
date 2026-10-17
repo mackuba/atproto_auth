@@ -2,7 +2,7 @@
 
 require_relative "../../test_helper"
 
-describe AtprotoAuth::PAR::ClientAssertion do
+describe AuthProto::PAR::ClientAssertion do
   let(:client_id) { "test-client-id" }
   let(:audience) { "https://example.com/oauth/token" }
   let(:signing_key) do
@@ -21,7 +21,7 @@ describe AtprotoAuth::PAR::ClientAssertion do
 
     JOSE::JWK.from_map(key_map)
   end
-  let(:client_assertion) { AtprotoAuth::PAR::ClientAssertion.new(client_id: client_id, signing_key: signing_key) }
+  let(:client_assertion) { AuthProto::PAR::ClientAssertion.new(client_id: client_id, signing_key: signing_key) }
 
   describe "#generate_jwt" do
     it "generates a valid JWT assertion" do
@@ -49,7 +49,7 @@ describe AtprotoAuth::PAR::ClientAssertion do
     it "raises an error if signing fails" do
       signing_key.stubs(:kty).returns(nil) # Simulate a signing key failure
 
-      error = assert_raises(AtprotoAuth::PAR::ClientAssertion::Error) do
+      error = assert_raises(AuthProto::PAR::ClientAssertion::Error) do
         client_assertion.generate_jwt(audience: audience)
       end
 

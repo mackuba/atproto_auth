@@ -1,4 +1,4 @@
-module AtprotoAuth
+module AuthProto
   module State
     class Session
       @session_id: String

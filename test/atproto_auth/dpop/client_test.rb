@@ -2,9 +2,9 @@
 
 require_relative "../../test_helper"
 
-describe AtprotoAuth::DPoP::Client do
+describe AuthProto::DPoP::Client do
   let(:mock_key_manager) do
-    Class.new(AtprotoAuth::DPoP::KeyManager) do
+    Class.new(AuthProto::DPoP::KeyManager) do
       def initialize; end # rubocop:disable Lint/MissingSuper - prevent calling actual KeyManager initialization logic
       def public_jwk = { kty: "EC", crv: "P-256", x: "test", y: "test" }
       def sign(_jwt_payload) = "signed_jwt"
@@ -12,7 +12,7 @@ describe AtprotoAuth::DPoP::Client do
   end
 
   let(:client) do
-    AtprotoAuth::DPoP::Client.new(
+    AuthProto::DPoP::Client.new(
       key_manager: mock_key_manager,
       nonce_ttl: 400
     )
@@ -50,7 +50,7 @@ describe AtprotoAuth::DPoP::Client do
       client.nonce_manager.expects(:get).with("https://example.com").returns(nil)
       client.proof_generator.expects(:generate).raises(StandardError, "Generation failed")
 
-      assert_raises(AtprotoAuth::DPoP::Client::Error) do
+      assert_raises(AuthProto::DPoP::Client::Error) do
         client.generate_proof(http_method: http_method, http_uri: http_uri)
       end
     end
@@ -73,7 +73,7 @@ describe AtprotoAuth::DPoP::Client do
     it "raises an error if nonce update fails" do
       client.nonce_manager.expects(:update).raises(StandardError, "Update failed")
 
-      assert_raises(AtprotoAuth::DPoP::Client::Error) do
+      assert_raises(AuthProto::DPoP::Client::Error) do
         client.process_response(response_headers, server_url)
       end
     end

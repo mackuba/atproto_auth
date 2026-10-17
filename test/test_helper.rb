@@ -19,7 +19,7 @@ module Minitest
     # Helper to check if a value is encrypted
     def assert_encrypted(value, msg = nil)
       assert value.is_a?(Hash), msg || "Expected encrypted hash format"
-      assert_equal AtprotoAuth::Encryption::Service::VERSION, value["version"]
+      assert_equal AuthProto::Encryption::Service::VERSION, value["version"]
       assert value["iv"], "Missing IV"
       assert value["data"], "Missing encrypted data"
       assert value["tag"], "Missing auth tag"

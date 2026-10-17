@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 # lib/atproto_auth/encryption.rb
-module AtprotoAuth
+module AuthProto
   module Encryption
-    class Error < AtprotoAuth::Error; end
+    class Error < AuthProto::Error; end
     class ConfigurationError < Error; end
     class EncryptionError < Error; end
     class DecryptionError < Error; end

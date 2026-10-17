@@ -2,15 +2,15 @@
 
 require_relative "../test_helper"
 
-describe AtprotoAuth::Configuration do
-  let(:configuration) { AtprotoAuth::Configuration.new }
+describe AuthProto::Configuration do
+  let(:configuration) { AuthProto::Configuration.new }
 
   describe "#initialize" do
     it "sets default values" do
       _(configuration.default_token_lifetime).must_equal 300
       _(configuration.dpop_nonce_lifetime).must_equal 300
       _(configuration.logger).must_be_instance_of Logger
-      _(configuration.storage).must_be_instance_of AtprotoAuth::Storage::Memory
+      _(configuration.storage).must_be_instance_of AuthProto::Storage::Memory
     end
   end
 
@@ -20,7 +20,7 @@ describe AtprotoAuth::Configuration do
     end
 
     it "validates custom storage implementation" do
-      custom_storage = Class.new(AtprotoAuth::Storage::Interface) do
+      custom_storage = Class.new(AuthProto::Storage::Interface) do
         def set(key, value, ttl: nil); end
         def get(key); end
         def delete(key); end
@@ -34,14 +34,14 @@ describe AtprotoAuth::Configuration do
 
     it "raises error for invalid storage implementation" do
       configuration.storage = Object.new
-      assert_raises(AtprotoAuth::ConfigurationError) do
+      assert_raises(AuthProto::ConfigurationError) do
         configuration.validate!
       end
     end
 
     it "raises error for nil storage" do
       configuration.storage = nil
-      assert_raises(AtprotoAuth::ConfigurationError) do
+      assert_raises(AuthProto::ConfigurationError) do
         configuration.validate!
       end
     end
@@ -57,7 +57,7 @@ describe AtprotoAuth::Configuration do
 
     it "raises error for invalid http client" do
       configuration.http_client = Object.new
-      assert_raises(AtprotoAuth::ConfigurationError) do
+      assert_raises(AuthProto::ConfigurationError) do
         configuration.validate!
       end
     end

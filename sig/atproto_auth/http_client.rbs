@@ -1,4 +1,4 @@
-module AtprotoAuth
+module AuthProto
   class HttpClient
     @timeout: Integer
 

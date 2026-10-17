@@ -1,9 +1,9 @@
-module AtprotoAuth
+module AuthProto
   module DPoP
     class KeyManager
       @keypair: JOSE::JWK
 
-      class KeyError < AtprotoAuth::Error
+      class KeyError < AuthProto::Error
       end
 
       CURVE: String
@@ -23,7 +23,7 @@ module AtprotoAuth
 
       def to_jwk: (?include_private: bool) -> Hash[String, untyped]
 
-      def self.from_jwk: (Hash[String, untyped] jwk) -> AtprotoAuth::DPoP::KeyManager
+      def self.from_jwk: (Hash[String, untyped] jwk) -> AuthProto::DPoP::KeyManager
 
       private
 

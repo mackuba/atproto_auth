@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module AtprotoAuth
+module AuthProto
   module State
     # Manages active OAuth sessions with secure persistent storage
     class SessionManager
@@ -26,10 +26,10 @@ module AtprotoAuth
         session_key = Storage::KeyBuilder.session_key(session.session_id)
         state_key = Storage::KeyBuilder.state_key(session.state_token)
 
-        AtprotoAuth.storage.with_lock(session_key, ttl: 30) do
+        AuthProto.storage.with_lock(session_key, ttl: 30) do
           serialized = @serializer.serialize(session)
-          AtprotoAuth.storage.set(session_key, serialized)
-          AtprotoAuth.storage.set(state_key, session.session_id)
+          AuthProto.storage.set(session_key, serialized)
+          AuthProto.storage.set(state_key, session.session_id)
         end
 
         session
@@ -41,12 +41,12 @@ module AtprotoAuth
       def update_session(session)
         session_key = Storage::KeyBuilder.session_key(session.session_id)
 
-        AtprotoAuth.storage.with_lock(session_key, ttl: 30) do
+        AuthProto.storage.with_lock(session_key, ttl: 30) do
           serialized = @serializer.serialize(session)
-          AtprotoAuth.storage.set(session_key, serialized)
+          AuthProto.storage.set(session_key, serialized)
 
           state_key = Storage::KeyBuilder.state_key(session.state_token)
-          AtprotoAuth.storage.set(state_key, session.session_id)
+          AuthProto.storage.set(state_key, session.session_id)
         end
 
         session
@@ -59,10 +59,10 @@ module AtprotoAuth
         session_key = Storage::KeyBuilder.session_key(session_id)
 
         begin
-          serialized = AtprotoAuth.storage.get(session_key)
+          serialized = AuthProto.storage.get(session_key)
           return nil unless serialized
         rescue StandardError => e
-          AtprotoAuth.configuration.logger.error("Failed to get session: #{e.message}")
+          AuthProto.configuration.logger.error("Failed to get session: #{e.message}")
           return nil
         end
 
@@ -72,7 +72,7 @@ module AtprotoAuth
 
           session
         rescue StandardError => e
-          AtprotoAuth.configuration.logger.error("Failed to deserialize session: #{e.message}")
+          AuthProto.configuration.logger.error("Failed to deserialize session: #{e.message}")
           nil
         end
       end
@@ -86,10 +86,10 @@ module AtprotoAuth
         state_key = Storage::KeyBuilder.state_key(state)
 
         begin
-          session_id = AtprotoAuth.storage.get(state_key)
+          session_id = AuthProto.storage.get(state_key)
           return nil unless session_id
         rescue StandardError => e
-          AtprotoAuth.configuration.logger.error("Failed to get session by state: #{e.message}")
+          AuthProto.configuration.logger.error("Failed to get session by state: #{e.message}")
           return nil
         end
 
@@ -106,9 +106,9 @@ module AtprotoAuth
         session_key = Storage::KeyBuilder.session_key(session_id)
         state_key = Storage::KeyBuilder.state_key(session.state_token)
 
-        AtprotoAuth.storage.with_lock(session_key, ttl: 30) do
-          AtprotoAuth.storage.delete(session_key)
-          AtprotoAuth.storage.delete(state_key)
+        AuthProto.storage.with_lock(session_key, ttl: 30) do
+          AuthProto.storage.delete(session_key)
+          AuthProto.storage.delete(state_key)
         end
       end
 

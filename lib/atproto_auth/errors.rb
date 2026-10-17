@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module AtprotoAuth
+module AuthProto
   class Error < StandardError; end
 
   # Base class for AT Protocol OAuth errors
@@ -19,8 +19,8 @@ module AtprotoAuth
   #
   # @example Handling client metadata errors
   #   begin
-  #     client = AtprotoAuth::Client.new(client_id: "https://myapp.com/metadata.json")
-  #   rescue AtprotoAuth::InvalidClientMetadata => e
+  #     client = AuthProto::Client.new(client_id: "https://myapp.com/metadata.json")
+  #   rescue AuthProto::InvalidClientMetadata => e
   #     puts "Failed to validate client metadata: #{e.message}"
   #   end
   class InvalidClientMetadata < OAuthError
@@ -35,8 +35,8 @@ module AtprotoAuth
   #
   # @example Handling authorization server errors
   #   begin
-  #     server = AtprotoAuth::AuthorizationServer.new(issuer: "https://auth.example.com")
-  #   rescue AtprotoAuth::InvalidAuthorizationServer => e
+  #     server = AuthProto::AuthorizationServer.new(issuer: "https://auth.example.com")
+  #   rescue AuthProto::InvalidAuthorizationServer => e
   #     puts "Failed to validate authorization server: #{e.message}"
   #   end
   class InvalidAuthorizationServer < OAuthError

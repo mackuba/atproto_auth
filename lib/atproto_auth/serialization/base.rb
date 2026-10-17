@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-module AtprotoAuth
+module AuthProto
   module Serialization
-    class Error < AtprotoAuth::Error; end
+    class Error < AuthProto::Error; end
 
     class VersionError < Error; end
 

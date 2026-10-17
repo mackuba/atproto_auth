@@ -5,7 +5,7 @@ require "uri"
 require "ipaddr"
 require "resolv"
 
-module AtprotoAuth
+module AuthProto
   # A secure HTTP client for making OAuth-related requests.
   # Implements protections against SSRF attacks and enforces security headers.
   class HttpClient

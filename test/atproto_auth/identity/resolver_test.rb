@@ -2,16 +2,16 @@
 
 require_relative "../../test_helper"
 
-describe AtprotoAuth::Identity::Resolver do
-  let(:resolver) { AtprotoAuth::Identity::Resolver.new }
+describe AuthProto::Identity::Resolver do
+  let(:resolver) { AuthProto::Identity::Resolver.new }
   let(:handle) { "user.test.com" }
   let(:did) { "did:plc:test123" }
   let(:pds_url) { "https://pds.test.com" }
 
   before do
     Resolv::DNS.any_instance.stubs(:getaddresses).returns([Resolv::IPv4.create("93.184.216.34")])
-    AtprotoAuth.configure do |configuration|
-      configuration.http_client = AtprotoAuth::HttpClient.new
+    AuthProto.configure do |configuration|
+      configuration.http_client = AuthProto::HttpClient.new
     end
   end
 
@@ -75,7 +75,7 @@ describe AtprotoAuth::Identity::Resolver do
     end
 
     it "validates handle format" do
-      assert_raises(AtprotoAuth::Identity::ResolutionError) do
+      assert_raises(AuthProto::Identity::ResolutionError) do
         resolver.resolve_handle("invalid handle")
       end
     end
@@ -88,19 +88,19 @@ describe AtprotoAuth::Identity::Resolver do
       result = resolver.get_did_info(did)
       assert_equal did, result[:did]
       assert_equal pds_url, result[:pds]
-      assert_kind_of AtprotoAuth::Identity::Document, result[:document]
+      assert_kind_of AuthProto::Identity::Document, result[:document]
     end
 
     it "requires HTTPS for PDS URL" do
       stub_plc_document(did, "http://insecure.com")
 
-      assert_raises(AtprotoAuth::Identity::ResolutionError) do
+      assert_raises(AuthProto::Identity::ResolutionError) do
         resolver.get_did_info(did)
       end
     end
 
     it "validates DID format" do
-      assert_raises(AtprotoAuth::Identity::ResolutionError) do
+      assert_raises(AuthProto::Identity::ResolutionError) do
         resolver.get_did_info("invalid:did")
       end
     end
@@ -156,7 +156,7 @@ describe AtprotoAuth::Identity::Resolver do
       stub_plc_document(did, pds_url)
       different_pds = "https://different-pds.com"
 
-      error = assert_raises(AtprotoAuth::Identity::ValidationError) do
+      error = assert_raises(AuthProto::Identity::ValidationError) do
         resolver.verify_pds_binding(did, different_pds)
       end
 
@@ -185,7 +185,7 @@ describe AtprotoAuth::Identity::Resolver do
       stub_plc_document(did, pds_url)
       stub_resource_server_metadata(pds_url, issuer)
 
-      error = assert_raises(AtprotoAuth::Identity::ValidationError) do
+      error = assert_raises(AuthProto::Identity::ValidationError) do
         resolver.verify_issuer_binding(did, "https://wrong-issuer.com")
       end
 
@@ -223,7 +223,7 @@ describe AtprotoAuth::Identity::Resolver do
           headers: { "Content-Type": "application/json" }
         )
 
-      error = assert_raises(AtprotoAuth::Identity::ValidationError) do
+      error = assert_raises(AuthProto::Identity::ValidationError) do
         resolver.verify_handle_binding(handle, did)
       end
 

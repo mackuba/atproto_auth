@@ -2,7 +2,7 @@
 
 require "cgi"
 
-module AtprotoAuth
+module AuthProto
   module PAR
     # Represents a pushed authorization request
     class Request

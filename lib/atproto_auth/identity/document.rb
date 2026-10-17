@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module AtprotoAuth
+module AuthProto
   module Identity
     # Represents and validates a DID Document in the AT Protocol.
     #
@@ -19,7 +19,7 @@ module AtprotoAuth
     #     "alsoKnownAs" => ["at://alice.example.com"],
     #     "pds" => "https://pds.example.com"
     #   }
-    #   doc = AtprotoAuth::Identity::Document.new(data)
+    #   doc = AuthProto::Identity::Document.new(data)
     #
     #   puts doc.pds                    # => "https://pds.example.com"
     #   puts doc.has_handle?("alice.example.com")  # => true
@@ -33,7 +33,7 @@ module AtprotoAuth
     #       "serviceEndpoint" => "https://pds.example.com"
     #     }]
     #   }
-    #   doc = AtprotoAuth::Identity::Document.new(legacy_data)
+    #   doc = AuthProto::Identity::Document.new(legacy_data)
     #   puts doc.pds  # => "https://pds.example.com"
     class Document
       attr_reader :did, :rotation_keys, :also_known_as, :services, :pds

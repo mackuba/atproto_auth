@@ -1,11 +1,11 @@
-module AtprotoAuth
+module AuthProto
   module DPoP
     class NonceManager
       @ttl: Integer
-      @nonces: Hash[String, AtprotoAuth::DPoP::NonceManager::StoredNonce]
+      @nonces: Hash[String, AuthProto::DPoP::NonceManager::StoredNonce]
       @monitor: Monitor
 
-      class NonceError < AtprotoAuth::Error
+      class NonceError < AuthProto::Error
       end
 
       class StoredNonce

@@ -1,4 +1,4 @@
-module AtprotoAuth
+module AuthProto
   module State
     class SessionManager
       @sessions: Hash[String, Session]

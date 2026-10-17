@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-module AtprotoAuth
+module AuthProto
   module PAR
     # Generates client authentication JWTs according to RFC 7523 for AT Protocol OAuth.
     # Creates signed assertions using ES256 with required claims including iss/sub (client_id),
     # aud (token endpoint), jti (unique ID), and iat/exp (timing claims).
     class ClientAssertion
-      class Error < AtprotoAuth::Error; end
+      class Error < AuthProto::Error; end
 
       # @param client_id [String] OAuth client ID
       # @param signing_key [JOSE::JWK] Key to sign assertion with

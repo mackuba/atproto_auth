@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module AtprotoAuth
+module AuthProto
   module Test
     # Shared examples for testing storage implementations
     # Include this module in storage implementation tests
@@ -37,25 +37,25 @@ module AtprotoAuth
 
           describe "key validation" do
             it "requires atproto: prefix" do
-              assert_raises(AtprotoAuth::Storage::StorageError) do
+              assert_raises(AuthProto::Storage::StorageError) do
                 storage.set("invalid:key", "value")
               end
             end
 
             it "rejects nil keys" do
-              assert_raises(AtprotoAuth::Storage::StorageError) do
+              assert_raises(AuthProto::Storage::StorageError) do
                 storage.set(nil, "value")
               end
             end
 
             it "rejects empty keys" do
-              assert_raises(AtprotoAuth::Storage::StorageError) do
+              assert_raises(AuthProto::Storage::StorageError) do
                 storage.set("", "value")
               end
             end
 
             it "rejects non-string keys" do
-              assert_raises(AtprotoAuth::Storage::StorageError) do
+              assert_raises(AuthProto::Storage::StorageError) do
                 storage.set(123, "value")
               end
             end
@@ -70,11 +70,11 @@ module AtprotoAuth
             end
 
             it "validates TTL values" do
-              assert_raises(AtprotoAuth::Storage::StorageError) do
+              assert_raises(AuthProto::Storage::StorageError) do
                 storage.set("atproto:test:ttl", "value", ttl: -1)
               end
 
-              assert_raises(AtprotoAuth::Storage::StorageError) do
+              assert_raises(AuthProto::Storage::StorageError) do
                 storage.set("atproto:test:ttl", "value", ttl: "invalid")
               end
             end
@@ -97,7 +97,7 @@ module AtprotoAuth
 
             it "expires locks after TTL" do
               storage.with_lock("atproto:test:lock", ttl: 1) do
-                assert_raises(AtprotoAuth::Storage::LockError) do
+                assert_raises(AuthProto::Storage::LockError) do
                   storage.with_lock("atproto:test:lock", ttl: 30) { true }
                 end
 
@@ -148,7 +148,7 @@ module AtprotoAuth
                       success_count += 1
                       sleep 0.1
                     end
-                  rescue AtprotoAuth::Storage::LockError
+                  rescue AuthProto::Storage::LockError
                     fail_count += 1
                   end
                 end

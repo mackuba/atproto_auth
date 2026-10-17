@@ -6,13 +6,13 @@ require "tmpdir"
 require_relative "../../test_helper"
 require_relative "storage_examples"
 
-describe AtprotoAuth::Storage::SQLite do
+describe AuthProto::Storage::SQLite do
   let(:temporary_directory) { Dir.mktmpdir("atproto-auth-sqlite-test") }
   let(:database_path) { File.join(temporary_directory, "storage.sqlite3") }
-  let(:storage) { AtprotoAuth::Storage::SQLite.new(path: database_path) }
+  let(:storage) { AuthProto::Storage::SQLite.new(path: database_path) }
 
   # Include shared storage implementation tests
-  include AtprotoAuth::Test::StorageExamples
+  include AuthProto::Test::StorageExamples
 
   before do
     storage
@@ -49,7 +49,7 @@ describe AtprotoAuth::Storage::SQLite do
     end
 
     it "configures the busy timeout" do
-      custom_storage = AtprotoAuth::Storage::SQLite.new(
+      custom_storage = AuthProto::Storage::SQLite.new(
         path: File.join(temporary_directory, "custom.sqlite3"),
         busy_timeout: 1_234
       )
@@ -62,11 +62,11 @@ describe AtprotoAuth::Storage::SQLite do
 
     it "rejects invalid busy timeouts" do
       assert_raises(ArgumentError) do
-        AtprotoAuth::Storage::SQLite.new(path: File.join(temporary_directory, "invalid.sqlite3"), busy_timeout: -1)
+        AuthProto::Storage::SQLite.new(path: File.join(temporary_directory, "invalid.sqlite3"), busy_timeout: -1)
       end
 
       assert_raises(ArgumentError) do
-        AtprotoAuth::Storage::SQLite.new(
+        AuthProto::Storage::SQLite.new(
           path: File.join(temporary_directory, "invalid.sqlite3"),
           busy_timeout: "lizard"
         )
@@ -81,7 +81,7 @@ describe AtprotoAuth::Storage::SQLite do
         "storage.sqlite3"
       )
 
-      nested_storage = AtprotoAuth::Storage::SQLite.new(path: database_path)
+      nested_storage = AuthProto::Storage::SQLite.new(path: database_path)
       assert_path_exists database_path
     ensure
       nested_storage&.close
@@ -90,8 +90,8 @@ describe AtprotoAuth::Storage::SQLite do
 
   describe "error handling" do
     it "wraps database initialization errors" do
-      assert_raises(AtprotoAuth::Storage::SQLite::SQLiteError) do
-        AtprotoAuth::Storage::SQLite.new(path: temporary_directory)
+      assert_raises(AuthProto::Storage::SQLite::SQLiteError) do
+        AuthProto::Storage::SQLite.new(path: temporary_directory)
       end
     end
   end
@@ -99,7 +99,7 @@ describe AtprotoAuth::Storage::SQLite do
   describe "persistence" do
     it "shares values between connections" do
       storage.set("atproto:test:persistent", "value")
-      second_storage = AtprotoAuth::Storage::SQLite.new(path: database_path)
+      second_storage = AuthProto::Storage::SQLite.new(path: database_path)
 
       assert_equal "value", second_storage.get("atproto:test:persistent")
     ensure
@@ -157,10 +157,10 @@ describe AtprotoAuth::Storage::SQLite do
     end
 
     it "coordinates locks between storage instances" do
-      second_storage = AtprotoAuth::Storage::SQLite.new(path: database_path)
+      second_storage = AuthProto::Storage::SQLite.new(path: database_path)
 
       storage.with_lock("atproto:test:lock", ttl: 30) do
-        assert_raises(AtprotoAuth::Storage::LockError) do
+        assert_raises(AuthProto::Storage::LockError) do
           second_storage.with_lock("atproto:test:lock", ttl: 30) { true }
         end
       end
@@ -169,7 +169,7 @@ describe AtprotoAuth::Storage::SQLite do
     end
 
     it "does not clean a stale lock on exit if it was already replaced" do
-      second_storage = AtprotoAuth::Storage::SQLite.new(path: database_path)
+      second_storage = AuthProto::Storage::SQLite.new(path: database_path)
       second_thread = nil
 
       newer_owner_acquired = Queue.new
@@ -192,7 +192,7 @@ describe AtprotoAuth::Storage::SQLite do
       end
 
       # ensure that storage.with_lock exiting did not delete second_thread's lock
-      assert_raises(AtprotoAuth::Storage::LockError) do
+      assert_raises(AuthProto::Storage::LockError) do
         storage.with_lock("atproto:test:lock", ttl: 30) { true }
       end
     ensure

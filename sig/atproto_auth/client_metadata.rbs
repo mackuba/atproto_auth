@@ -1,4 +1,4 @@
-module AtprotoAuth
+module AuthProto
   # Handles and validates AT Protocol OAuth client metadata.
   class ClientMetadata
     @client_id: String

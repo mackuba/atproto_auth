@@ -5,7 +5,7 @@ interface _HTTPClient
   def delete: (String, ?Hash[Symbol, untyped]) -> { status: Integer, body: String, headers: Hash[String, String] }
 end
 
-module AtprotoAuth
+module AuthProto
   class Error < StandardError
   end
 

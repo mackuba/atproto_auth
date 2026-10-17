@@ -14,7 +14,7 @@ class ExampleApp < Sinatra::Base
     return false unless session_id
 
     settings.oauth_client.authorized?(session_id)
-  rescue AtprotoAuth::SessionError
+  rescue AuthProto::SessionError
     false
   end
 
@@ -24,21 +24,21 @@ class ExampleApp < Sinatra::Base
 
   # Initialize the AT Protocol OAuth client
   configure do
-    # Configure AtprotoAuth settings
-    AtprotoAuth.configure do |config|
-      config.http_client = AtprotoAuth::HttpClient.new(timeout: 10, verify_ssl: true)
+    # Configure AuthProto settings
+    AuthProto.configure do |config|
+      config.http_client = AuthProto::HttpClient.new(timeout: 10, verify_ssl: true)
       config.default_token_lifetime = 300
       config.dpop_nonce_lifetime = 300
 
       case ENV.fetch("STORAGE_BACKEND", "memory")
       when "memory"
-        config.storage = AtprotoAuth::Storage::Memory.new
+        config.storage = AuthProto::Storage::Memory.new
       when "sqlite"
-        config.storage = AtprotoAuth::Storage::SQLite.new(
+        config.storage = AuthProto::Storage::SQLite.new(
           path: ENV.fetch("SQLITE_PATH", File.join(__dir__, "db", "atproto_auth.sqlite3"))
         )
       when "redis"
-        config.storage = AtprotoAuth::Storage::Redis.new(
+        config.storage = AuthProto::Storage::Redis.new(
           redis_client: Redis.new(url: ENV.fetch("REDIS_URL"))
         )
       else
@@ -59,7 +59,7 @@ class ExampleApp < Sinatra::Base
     end
 
     # Create OAuth client
-    set :oauth_client, AtprotoAuth::Client.new(
+    set :oauth_client, AuthProto::Client.new(
       client_id: client_id,
       redirect_uri: metadata["redirect_uris"][0],
       metadata: metadata,
@@ -89,7 +89,7 @@ class ExampleApp < Sinatra::Base
         return nil unless settings.oauth_client.authorized?(session_id)
 
         session_id
-      rescue AtprotoAuth::Client::SessionError
+      rescue AuthProto::Client::SessionError
         # Clear invalid session
         session.delete(:oauth_session_id)
         nil
@@ -222,7 +222,7 @@ class ExampleApp < Sinatra::Base
 
     oauth_session = settings.oauth_client.session_manager.get_session(session_id)
     pds_url = ENV.fetch("PDS_URL") do
-      AtprotoAuth::Identity::Resolver.new.get_did_info(oauth_session.did).fetch(:pds)
+      AuthProto::Identity::Resolver.new.get_did_info(oauth_session.did).fetch(:pds)
     end
     endpoint = URI.join(
       "#{pds_url.chomp("/")}/",

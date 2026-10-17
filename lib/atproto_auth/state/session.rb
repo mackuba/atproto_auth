@@ -4,7 +4,7 @@ require "securerandom"
 require "time"
 require "monitor"
 
-module AtprotoAuth
+module AuthProto
   module State
     # Tracks state for an OAuth authorization flow session
     class Session

@@ -8,7 +8,7 @@ rescue LoadError
   raise
 end
 
-module AtprotoAuth
+module AuthProto
   module Storage
     # Redis storage implementation
     class Redis < Interface

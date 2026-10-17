@@ -2,7 +2,7 @@
 
 require "cgi"
 
-module AtprotoAuth
+module AuthProto
   module PAR
     # Client for making Pushed Authorization Requests (PAR) according to RFC 9126.
     # Handles submitting authorization parameters to the PAR endpoint and building
@@ -16,12 +16,12 @@ module AtprotoAuth
     # 3. Use only the request_uri and client_id in the authorization redirect
     #
     # @example Basic PAR flow
-    #   client = AtprotoAuth::PAR::Client.new(
+    #   client = AuthProto::PAR::Client.new(
     #     endpoint: "https://auth.example.com/par"
     #   )
     #
     #   # Create and submit PAR request using builder pattern
-    #   request = AtprotoAuth::PAR::Request.build do |config|
+    #   request = AuthProto::PAR::Request.build do |config|
     #     config.client_id = "https://app.example.com/client-metadata.json"
     #     config.redirect_uri = "https://app.example.com/callback"
     #     config.code_challenge = "abc123..."
@@ -40,14 +40,14 @@ module AtprotoAuth
     #   )
     #
     # @example With client authentication (confidential clients)
-    #   request = AtprotoAuth::PAR::Request.build do |config|
+    #   request = AuthProto::PAR::Request.build do |config|
     #     # ... basic parameters ...
     #     config.client_assertion_type = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
     #     config.client_assertion = jwt_token
     #   end
     #
     # @example With DPoP proof
-    #   request = AtprotoAuth::PAR::Request.build do |config|
+    #   request = AuthProto::PAR::Request.build do |config|
     #     # ... basic parameters ...
     #     config.dpop_proof = dpop_proof_jwt
     #   end
@@ -140,7 +140,7 @@ module AtprotoAuth
         headers = build_headers(request, proof)
 
         # Make the request
-        AtprotoAuth.configuration.http_client.post(
+        AuthProto.configuration.http_client.post(
           endpoint,
           body: request.to_form,
           headers: headers

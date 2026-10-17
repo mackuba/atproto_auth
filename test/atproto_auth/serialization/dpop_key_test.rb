@@ -2,9 +2,9 @@
 
 require_relative "../../test_helper"
 
-describe AtprotoAuth::Serialization::DPoPKey do
-  let(:key_manager) { AtprotoAuth::DPoP::KeyManager.new }
-  let(:serializer) { AtprotoAuth::Serialization::DPoPKey.new }
+describe AuthProto::Serialization::DPoPKey do
+  let(:key_manager) { AuthProto::DPoP::KeyManager.new }
+  let(:serializer) { AuthProto::Serialization::DPoPKey.new }
 
   it "roundtrips a DPoP key manager object" do
     serialized = serializer.serialize(key_manager)
@@ -28,7 +28,7 @@ describe AtprotoAuth::Serialization::DPoPKey do
   end
 
   it "validates object type" do
-    assert_raises(AtprotoAuth::Serialization::ValidationError) do
+    assert_raises(AuthProto::Serialization::ValidationError) do
       serializer.serialize(Object.new)
     end
   end

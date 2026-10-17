@@ -2,7 +2,7 @@
 
 require_relative "../../test_helper"
 
-describe AtprotoAuth::Identity::Document do
+describe AuthProto::Identity::Document do
   let(:valid_data) do
     {
       "id" => "did:plc:abc123",
@@ -36,7 +36,7 @@ describe AtprotoAuth::Identity::Document do
 
   describe "#initialize" do
     it "initializes with valid data" do
-      doc = AtprotoAuth::Identity::Document.new(valid_data)
+      doc = AuthProto::Identity::Document.new(valid_data)
       _(doc.did).must_equal "did:plc:abc123"
       _(doc.rotation_keys).must_equal ["z123"]
       _(doc.also_known_as).must_equal ["at://alice.example.com"]
@@ -44,7 +44,7 @@ describe AtprotoAuth::Identity::Document do
     end
 
     it "initializes with legacy data format" do
-      doc = AtprotoAuth::Identity::Document.new(legacy_data)
+      doc = AuthProto::Identity::Document.new(legacy_data)
       _(doc.did).must_equal "did:plc:abc123"
       _(doc.rotation_keys).must_equal []
       _(doc.also_known_as).must_equal []
@@ -52,26 +52,26 @@ describe AtprotoAuth::Identity::Document do
     end
 
     it "raises an error if data is missing id" do
-      assert_raises(AtprotoAuth::Identity::DocumentError, "Document must have id") do
-        AtprotoAuth::Identity::Document.new(invalid_data_no_id)
+      assert_raises(AuthProto::Identity::DocumentError, "Document must have id") do
+        AuthProto::Identity::Document.new(invalid_data_no_id)
       end
     end
 
     it "raises an error if DID format is invalid" do
-      assert_raises(AtprotoAuth::Identity::Error, "Invalid DID format (must be did:plc:)") do
-        AtprotoAuth::Identity::Document.new(invalid_did)
+      assert_raises(AuthProto::Identity::Error, "Invalid DID format (must be did:plc:)") do
+        AuthProto::Identity::Document.new(invalid_did)
       end
     end
 
     it "raises an error if service entry format is invalid" do
-      assert_raises(AtprotoAuth::Identity::DocumentError, "Invalid service entry format") do
-        AtprotoAuth::Identity::Document.new(invalid_service_format)
+      assert_raises(AuthProto::Identity::DocumentError, "Invalid service entry format") do
+        AuthProto::Identity::Document.new(invalid_service_format)
       end
     end
   end
 
   describe "#has_handle?" do
-    let(:doc) { AtprotoAuth::Identity::Document.new(valid_data) }
+    let(:doc) { AuthProto::Identity::Document.new(valid_data) }
 
     it "returns true if handle is present in alsoKnownAs" do
       _(doc.has_handle?("alice.example.com")).must_equal true

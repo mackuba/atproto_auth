@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module AtprotoAuth
+module AuthProto
   module Storage
     # Base storage interface that all implementations must conform to
     class Interface
@@ -70,7 +70,7 @@ module AtprotoAuth
     end
 
     # Base error class for storage operations
-    class StorageError < AtprotoAuth::Error; end
+    class StorageError < AuthProto::Error; end
 
     # Error for lock-related operations
     class LockError < StorageError; end

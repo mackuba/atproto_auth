@@ -2,8 +2,8 @@
 
 require "test_helper"
 
-describe AtprotoAuth do
+describe AuthProto do
   it "has a VERSION constant defined" do
-    _(AtprotoAuth.const_defined?(:VERSION)).must_equal true
+    _(AuthProto.const_defined?(:VERSION)).must_equal true
   end
 end

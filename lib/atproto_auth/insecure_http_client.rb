@@ -2,7 +2,7 @@
 
 require_relative "http_client"
 
-module AtprotoAuth
+module AuthProto
   # Development transport for mixed local HTTP and remote HTTPS requests.
   # Allows private/loopback destinations; HTTPS certificate verification is kept.
   class InsecureHttpClient < HttpClient

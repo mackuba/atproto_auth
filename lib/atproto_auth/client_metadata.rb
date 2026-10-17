@@ -3,7 +3,7 @@
 require "uri"
 require "json"
 
-module AtprotoAuth
+module AuthProto
   module ApplicationType
     ALL = [
       WEB = "web",
@@ -244,7 +244,7 @@ module AtprotoAuth
       end
 
       def fetch_metadata(url)
-        AtprotoAuth.configuration.http_client&.get(url) ||
+        AuthProto.configuration.http_client&.get(url) ||
           raise(InvalidClientMetadata, "HTTP client not configured")
       end
 

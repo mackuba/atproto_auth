@@ -2,11 +2,11 @@
 
 require_relative "../../test_helper"
 
-describe AtprotoAuth::State::SessionManager do
+describe AuthProto::State::SessionManager do
   let(:client_id) { "test_client_id" }
   let(:scope) { "read write" }
   let(:auth_server) do
-    AtprotoAuth::ServerMetadata::AuthorizationServer.new(
+    AuthProto::ServerMetadata::AuthorizationServer.new(
       "issuer" => "https://example.com",
       "token_endpoint" => "https://example.com/token",
       "authorization_endpoint" => "https://example.com/auth",
@@ -24,11 +24,11 @@ describe AtprotoAuth::State::SessionManager do
     )
   end
   let(:did) { "did:example:1234" }
-  let(:session_manager) { AtprotoAuth::State::SessionManager.new }
-  let(:storage) { AtprotoAuth::Storage::Memory.new }
+  let(:session_manager) { AuthProto::State::SessionManager.new }
+  let(:storage) { AuthProto::Storage::Memory.new }
 
   before do
-    AtprotoAuth.stubs(:storage).returns(storage)
+    AuthProto.stubs(:storage).returns(storage)
     auth_server.stubs(:as_json).returns({ some: value })
   end
 
@@ -37,12 +37,12 @@ describe AtprotoAuth::State::SessionManager do
       session = session_manager.create_session(client_id: client_id, scope: scope, auth_server: auth_server, did: did)
 
       # Verify session was stored
-      session_key = AtprotoAuth::Storage::KeyBuilder.session_key(session.session_id)
+      session_key = AuthProto::Storage::KeyBuilder.session_key(session.session_id)
       stored = storage.get(session_key)
       assert stored, "Session was not stored"
 
       # Verify state mapping was stored
-      state_key = AtprotoAuth::Storage::KeyBuilder.state_key(session.state_token)
+      state_key = AuthProto::Storage::KeyBuilder.state_key(session.state_token)
       state_mapping = storage.get(state_key)
       assert_equal session.session_id, state_mapping
     end
@@ -76,9 +76,9 @@ describe AtprotoAuth::State::SessionManager do
     end
 
     it "handles storage errors gracefully" do
-      failing_storage = Class.new(AtprotoAuth::Storage::Interface) do
+      failing_storage = Class.new(AuthProto::Storage::Interface) do
         def set(*)
-          raise AtprotoAuth::Storage::StorageError, "Storage failure"
+          raise AuthProto::Storage::StorageError, "Storage failure"
         end
 
         def with_lock(*)
@@ -86,9 +86,9 @@ describe AtprotoAuth::State::SessionManager do
         end
       end.new
 
-      AtprotoAuth.stubs(:storage).returns(failing_storage)
+      AuthProto.stubs(:storage).returns(failing_storage)
 
-      assert_raises(AtprotoAuth::Storage::StorageError) do
+      assert_raises(AuthProto::Storage::StorageError) do
         session_manager.update_session(session)
       end
     end
@@ -105,8 +105,8 @@ describe AtprotoAuth::State::SessionManager do
 
       session_manager.update_session(session)
 
-      session_key = AtprotoAuth::Storage::KeyBuilder.session_key(session.session_id)
-      state_key = AtprotoAuth::Storage::KeyBuilder.state_key(original_state)
+      session_key = AuthProto::Storage::KeyBuilder.session_key(session.session_id)
+      state_key = AuthProto::Storage::KeyBuilder.state_key(original_state)
 
       _(updates).must_include session_key
       _(updates).must_include state_key
@@ -129,7 +129,7 @@ describe AtprotoAuth::State::SessionManager do
 
     it "returns nil if deserialization fails" do
       session = session_manager.create_session(client_id: client_id, scope: scope)
-      session_key = AtprotoAuth::Storage::KeyBuilder.session_key(session.session_id)
+      session_key = AuthProto::Storage::KeyBuilder.session_key(session.session_id)
 
       # Corrupt the stored data
       storage.set(session_key, "invalid json")
@@ -141,7 +141,7 @@ describe AtprotoAuth::State::SessionManager do
       session = session_manager.create_session(client_id: client_id, scope: scope)
 
       # Add expired tokens
-      tokens = AtprotoAuth::State::TokenSet.new(
+      tokens = AuthProto::State::TokenSet.new(
         access_token: "expired_token",
         token_type: "DPoP",
         expires_in: 1,
@@ -153,8 +153,8 @@ describe AtprotoAuth::State::SessionManager do
       session.tokens = tokens
 
       # Re-store the session with expired tokens
-      session_key = AtprotoAuth::Storage::KeyBuilder.session_key(session.session_id)
-      serializer = AtprotoAuth::Serialization::Session.new
+      session_key = AuthProto::Storage::KeyBuilder.session_key(session.session_id)
+      serializer = AuthProto::Serialization::Session.new
       storage.set(session_key, serializer.serialize(session))
 
       # If this still fails, let's inspect what we get back
@@ -188,8 +188,8 @@ describe AtprotoAuth::State::SessionManager do
   describe "#remove_session" do
     it "removes a session and its state mapping" do
       session = session_manager.create_session(client_id: client_id, scope: scope)
-      session_key = AtprotoAuth::Storage::KeyBuilder.session_key(session.session_id)
-      state_key = AtprotoAuth::Storage::KeyBuilder.state_key(session.state_token)
+      session_key = AuthProto::Storage::KeyBuilder.session_key(session.session_id)
+      state_key = AuthProto::Storage::KeyBuilder.state_key(session.state_token)
 
       session_manager.remove_session(session.session_id)
 
@@ -205,21 +205,21 @@ describe AtprotoAuth::State::SessionManager do
   describe "storage integration" do
     it "handles storage errors gracefully" do
       # Create a failing storage implementation
-      failing_storage = Class.new(AtprotoAuth::Storage::Interface) do
+      failing_storage = Class.new(AuthProto::Storage::Interface) do
         def set(*)
-          raise AtprotoAuth::Storage::StorageError, "Storage failure"
+          raise AuthProto::Storage::StorageError, "Storage failure"
         end
 
         def get(*)
-          raise AtprotoAuth::Storage::StorageError, "Storage failure"
+          raise AuthProto::Storage::StorageError, "Storage failure"
         end
 
         def delete(*)
-          raise AtprotoAuth::Storage::StorageError, "Storage failure"
+          raise AuthProto::Storage::StorageError, "Storage failure"
         end
 
         def exists?(*)
-          raise AtprotoAuth::Storage::StorageError, "Storage failure"
+          raise AuthProto::Storage::StorageError, "Storage failure"
         end
 
         def with_lock(*)
@@ -227,10 +227,10 @@ describe AtprotoAuth::State::SessionManager do
         end
       end.new
 
-      AtprotoAuth.stubs(:storage).returns(failing_storage)
+      AuthProto.stubs(:storage).returns(failing_storage)
 
       # Test error handling
-      assert_raises(AtprotoAuth::Storage::StorageError) do
+      assert_raises(AuthProto::Storage::StorageError) do
         session_manager.create_session(client_id: client_id, scope: scope)
       end
 

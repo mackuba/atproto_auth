@@ -2,7 +2,7 @@
 
 require_relative "../../test_helper"
 
-class TestSerializer < AtprotoAuth::Serialization::Base
+class TestSerializer < AuthProto::Serialization::Base
   def type_identifier
     "Test"
   end
@@ -18,11 +18,11 @@ class TestSerializer < AtprotoAuth::Serialization::Base
   end
 
   def validate_object!(obj)
-    raise AtprotoAuth::Serialization::ValidationError unless obj.is_a?(String)
+    raise AuthProto::Serialization::ValidationError unless obj.is_a?(String)
   end
 end
 
-describe AtprotoAuth::Serialization::Base do
+describe AuthProto::Serialization::Base do
   let(:serializer) { TestSerializer.new }
   let(:sample_data) { "test data" }
 
@@ -30,7 +30,7 @@ describe AtprotoAuth::Serialization::Base do
     it "creates valid serialized format" do
       result = JSON.parse(serializer.serialize(sample_data))
 
-      assert_equal AtprotoAuth::Serialization::Base::CURRENT_VERSION, result["version"]
+      assert_equal AuthProto::Serialization::Base::CURRENT_VERSION, result["version"]
       assert_equal "Test", result["type"]
       assert result["created_at"]
       assert result["updated_at"]
@@ -51,7 +51,7 @@ describe AtprotoAuth::Serialization::Base do
     end
 
     it "raises ValidationError for invalid objects" do
-      assert_raises(AtprotoAuth::Serialization::ValidationError) do
+      assert_raises(AuthProto::Serialization::ValidationError) do
         serializer.serialize(123)
       end
     end
@@ -66,7 +66,7 @@ describe AtprotoAuth::Serialization::Base do
     end
 
     it "raises Error for invalid JSON" do
-      assert_raises(AtprotoAuth::Serialization::Error) do
+      assert_raises(AuthProto::Serialization::Error) do
         serializer.deserialize("invalid json")
       end
     end
@@ -76,7 +76,7 @@ describe AtprotoAuth::Serialization::Base do
       data = JSON.parse(serialized)
       data["type"] = "Wrong"
 
-      assert_raises(AtprotoAuth::Serialization::TypeMismatchError) do
+      assert_raises(AuthProto::Serialization::TypeMismatchError) do
         serializer.deserialize(JSON.generate(data))
       end
     end
@@ -86,7 +86,7 @@ describe AtprotoAuth::Serialization::Base do
       data = JSON.parse(serialized)
       data["version"] = 999
 
-      assert_raises(AtprotoAuth::Serialization::VersionError) do
+      assert_raises(AuthProto::Serialization::VersionError) do
         serializer.deserialize(JSON.generate(data))
       end
     end

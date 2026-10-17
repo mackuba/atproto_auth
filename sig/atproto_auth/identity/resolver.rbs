@@ -1,4 +1,4 @@
-module AtprotoAuth
+module AuthProto
   module Identity
     class Resolver
       @plc_directory: String

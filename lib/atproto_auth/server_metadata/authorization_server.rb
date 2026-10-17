@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module AtprotoAuth
+module AuthProto
   module ServerMetadata
     # Handles fetching and validation of AT Protocol OAuth Authorization Server metadata.
     # An Authorization Server in atproto can be either a PDS instance or a separate "entryway" server
@@ -12,10 +12,10 @@ module AtprotoAuth
     #
     # @example Fetching and validating Authorization Server metadata
     #   begin
-    #     auth_server = AtprotoAuth::ServerMetadata::AuthorizationServer.from_issuer("https://auth.example.com")
+    #     auth_server = AuthProto::ServerMetadata::AuthorizationServer.from_issuer("https://auth.example.com")
     #     puts "Authorization endpoint: #{auth_server.authorization_endpoint}"
     #     puts "Supported scopes: #{auth_server.scopes_supported}"
-    #   rescue AtprotoAuth::InvalidAuthorizationServer => e
+    #   rescue AuthProto::InvalidAuthorizationServer => e
     #     puts "Failed to validate authorization server: #{e.message}"
     #   end
     #
@@ -172,7 +172,7 @@ module AtprotoAuth
 
         def fetch_metadata(issuer)
           metadata_url = URI.join(issuer, "/.well-known/oauth-authorization-server")
-          AtprotoAuth.configuration.http_client.get(metadata_url.to_s)
+          AuthProto.configuration.http_client.get(metadata_url.to_s)
         rescue HttpClient::HttpError => e
           raise InvalidAuthorizationServer, "Failed to fetch authorization server metadata: #{e.message}"
         end

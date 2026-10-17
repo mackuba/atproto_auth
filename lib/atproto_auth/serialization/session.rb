@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module AtprotoAuth
+module AuthProto
   module Serialization
     # Handles serialization of Session objects
     class Session < Base
@@ -11,7 +11,7 @@ module AtprotoAuth
       private
 
       def validate_object!(obj)
-        return if obj.is_a?(AtprotoAuth::State::Session)
+        return if obj.is_a?(AuthProto::State::Session)
 
         raise ValidationError,
               "Expected Session object, got #{obj.class}"
@@ -32,7 +32,7 @@ module AtprotoAuth
       end
 
       def deserialize_data(data)
-        AtprotoAuth::State::Session.new(
+        AuthProto::State::Session.new(
           client_id: data["client_id"],
           scope: data["scope"],
           did: data["did"],
@@ -70,7 +70,7 @@ module AtprotoAuth
       def deserialize_auth_server(data)
         return nil unless data
 
-        AtprotoAuth::ServerMetadata::AuthorizationServer.new(data)
+        AuthProto::ServerMetadata::AuthorizationServer.new(data)
       end
     end
   end

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module AtprotoAuth
+module AuthProto
   module Storage
     # Utility for building storage keys with correct format
     class KeyBuilder

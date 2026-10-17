@@ -2,7 +2,7 @@
 
 require "resolv"
 
-module AtprotoAuth
+module AuthProto
   module Identity
     # Validates decentralized identifiers (DIDs)
     class DID

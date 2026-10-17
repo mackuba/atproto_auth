@@ -1,4 +1,4 @@
-module AtprotoAuth
+module AuthProto
   class InsecureHttpClient < HttpClient
     ALLOWED_SCHEMES: ::Array[String]
 

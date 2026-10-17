@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module AtprotoAuth
+module AuthProto
   module ServerMetadata
     # The `OriginUrl` class provides validation logic for URLs that must conform
     # to the AT Protocol OAuth "simple origin URL" requirements. These requirements

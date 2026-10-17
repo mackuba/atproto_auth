@@ -2,14 +2,14 @@
 
 require_relative "../../test_helper"
 
-describe AtprotoAuth::Serialization::StoredNonce do
+describe AuthProto::Serialization::StoredNonce do
   let(:stored_nonce) do
-    AtprotoAuth::DPoP::NonceManager::StoredNonce.new(
+    AuthProto::DPoP::NonceManager::StoredNonce.new(
       "test_nonce",
       "https://example.com"
     )
   end
-  let(:serializer) { AtprotoAuth::Serialization::StoredNonce.new }
+  let(:serializer) { AuthProto::Serialization::StoredNonce.new }
 
   it "roundtrips a stored nonce object" do
     serialized = serializer.serialize(stored_nonce)
@@ -21,7 +21,7 @@ describe AtprotoAuth::Serialization::StoredNonce do
   end
 
   it "validates object type" do
-    assert_raises(AtprotoAuth::Serialization::ValidationError) do
+    assert_raises(AuthProto::Serialization::ValidationError) do
       serializer.serialize(Object.new)
     end
   end

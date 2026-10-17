@@ -2,7 +2,7 @@
 
 require "resolv"
 
-module AtprotoAuth
+module AuthProto
   module Identity
     # Resolves and validates AT Protocol identities
     class Resolver
@@ -176,7 +176,7 @@ module AtprotoAuth
         uri = URI("https://#{handle}/.well-known/atproto-did")
 
         # Make HTTP request
-        response = AtprotoAuth.configuration.http_client.get(uri.to_s)
+        response = AuthProto.configuration.http_client.get(uri.to_s)
         did = response[:body].strip
 
         DID.new(did).validate!
@@ -193,7 +193,7 @@ module AtprotoAuth
 
       def fetch_plc_did_document(did)
         uri = URI.join(@plc_directory, "/#{did}")
-        response = AtprotoAuth.configuration.http_client.get(uri.to_s)
+        response = AuthProto.configuration.http_client.get(uri.to_s)
         JSON.parse(response[:body])
       end
 
@@ -218,7 +218,7 @@ module AtprotoAuth
               end
 
         begin
-          response = AtprotoAuth.configuration.http_client.get(url)
+          response = AuthProto.configuration.http_client.get(url)
           JSON.parse(response[:body])
         rescue StandardError => e
           raise ResolutionError, "Failed to fetch did:web document: #{e.message}"
@@ -250,7 +250,7 @@ module AtprotoAuth
       end
 
       def logger
-        @logger ||= AtprotoAuth.configuration.logger || Logger.new($stdout)
+        @logger ||= AuthProto.configuration.logger || Logger.new($stdout)
       end
     end
   end

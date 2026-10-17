@@ -4,22 +4,22 @@ require_relative "../../test_helper"
 
 UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
-describe AtprotoAuth::DPoP::ProofGenerator do
-  let(:key_manager) { AtprotoAuth::DPoP::KeyManager.new }
-  let(:generator) { AtprotoAuth::DPoP::ProofGenerator.new(key_manager) }
+describe AuthProto::DPoP::ProofGenerator do
+  let(:key_manager) { AuthProto::DPoP::KeyManager.new }
+  let(:generator) { AuthProto::DPoP::ProofGenerator.new(key_manager) }
   let(:http_method) { "POST" }
   let(:http_uri) { "https://example.com/path" }
 
   describe "initialization" do
     it "requires a key manager" do
-      assert_raises(AtprotoAuth::DPoP::ProofGenerator::ProofError) do
-        AtprotoAuth::DPoP::ProofGenerator.new(nil)
+      assert_raises(AuthProto::DPoP::ProofGenerator::ProofError) do
+        AuthProto::DPoP::ProofGenerator.new(nil)
       end
     end
 
     it "validates key manager type" do
-      assert_raises(AtprotoAuth::DPoP::ProofGenerator::ProofError) do
-        AtprotoAuth::DPoP::ProofGenerator.new("invalid")
+      assert_raises(AuthProto::DPoP::ProofGenerator::ProofError) do
+        AuthProto::DPoP::ProofGenerator.new("invalid")
       end
     end
   end
@@ -77,19 +77,19 @@ describe AtprotoAuth::DPoP::ProofGenerator do
     end
 
     it "validates http method" do
-      assert_raises(AtprotoAuth::DPoP::ProofGenerator::ProofError) do
+      assert_raises(AuthProto::DPoP::ProofGenerator::ProofError) do
         generator.generate(http_method: "", http_uri: http_uri)
       end
     end
 
     it "validates http uri" do
-      assert_raises(AtprotoAuth::DPoP::ProofGenerator::ProofError) do
+      assert_raises(AuthProto::DPoP::ProofGenerator::ProofError) do
         generator.generate(http_method: http_method, http_uri: "invalid")
       end
     end
 
     it "requires https or http uri" do
-      assert_raises(AtprotoAuth::DPoP::ProofGenerator::ProofError) do
+      assert_raises(AuthProto::DPoP::ProofGenerator::ProofError) do
         generator.generate(http_method: http_method, http_uri: "ftp://example.com")
       end
     end

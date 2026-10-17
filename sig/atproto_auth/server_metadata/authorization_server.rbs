@@ -1,4 +1,4 @@
-module AtprotoAuth
+module AuthProto
   module ServerMetadata
     class AuthorizationServer
       @issuer: String

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module AtprotoAuth
+module AuthProto
   module Serialization
     # Handles serialization of StoredNonce objects
     class StoredNonce < Base
@@ -11,7 +11,7 @@ module AtprotoAuth
       private
 
       def validate_object!(obj)
-        return if obj.is_a?(AtprotoAuth::DPoP::NonceManager::StoredNonce)
+        return if obj.is_a?(AuthProto::DPoP::NonceManager::StoredNonce)
 
         raise ValidationError,
               "Expected StoredNonce object, got #{obj.class}"
@@ -26,7 +26,7 @@ module AtprotoAuth
       end
 
       def deserialize_data(data)
-        AtprotoAuth::DPoP::NonceManager::StoredNonce.new(
+        AuthProto::DPoP::NonceManager::StoredNonce.new(
           data["value"],
           data["server_url"],
           timestamp: Time.at(data["timestamp"])

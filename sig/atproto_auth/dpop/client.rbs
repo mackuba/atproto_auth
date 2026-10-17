@@ -1,4 +1,4 @@
-module AtprotoAuth
+module AuthProto
   module DPoP
     class Client
       @key_manager: untyped
@@ -7,7 +7,7 @@ module AtprotoAuth
 
       @proof_generator: untyped
 
-      class Error < AtprotoAuth::Error
+      class Error < AuthProto::Error
       end
 
       attr_reader key_manager: untyped

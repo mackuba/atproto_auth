@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module AtprotoAuth
+module AuthProto
   module ServerMetadata
     # This class represents a Resource Server (PDS) and is responsible for
     # validating and managing its metadata. It ensures that the authorization
@@ -55,7 +55,7 @@ module AtprotoAuth
 
         def fetch_metadata(url)
           metadata_url = URI.join(url, "/.well-known/oauth-protected-resource")
-          AtprotoAuth.configuration.http_client.get(metadata_url.to_s)
+          AuthProto.configuration.http_client.get(metadata_url.to_s)
         rescue HttpClient::HttpError => e
           raise InvalidAuthorizationServer, "Failed to fetch resource server metadata: #{e.message}"
         end

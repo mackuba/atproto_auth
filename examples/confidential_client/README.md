@@ -1,6 +1,6 @@
 # AT Protocol OAuth Confidential Client Example
 
-This is an example implementation of a confidential OAuth client for the AT Protocol using the AtprotoAuth gem. It demonstrates how to implement the OAuth flow for a web application, including DPoP token binding and secure session management.
+This is an example implementation of a confidential OAuth client for the AT Protocol using the AuthProto gem. It demonstrates how to implement the OAuth flow for a web application, including DPoP token binding and secure session management.
 
 <img src="https://github.com/jhuckabee/atproto_auth/blob/main/examples/confidential_client/screenshots/screenshot-1-sign-in.png?raw=true" alt="Sign In Form Screenshot" title="Sign In Form" width="500">
 
@@ -96,8 +96,8 @@ one by passing `STORAGE_BACKEND=memory`, `STORAGE_BACKEND=sqlite`, or
 
 ```ruby
 # config/development.rb
-AtprotoAuth.configure do |config|
-  config.storage = AtprotoAuth::Storage::Memory.new
+AuthProto.configure do |config|
+  config.storage = AuthProto::Storage::Memory.new
   config.logger = Logger.new($stdout)
 end
 ```
@@ -119,13 +119,13 @@ Use Redis in more complex production setups:
 # config/production.rb
 require 'redis'
 
-AtprotoAuth.configure do |config|
+AuthProto.configure do |config|
   redis_client = Redis.new(
     url: ENV.fetch('REDIS_URL'),
     ssl_params: { verify_mode: OpenSSL::SSL::VERIFY_PEER }
   )
   
-  config.storage = AtprotoAuth::Storage::Redis.new(
+  config.storage = AuthProto::Storage::Redis.new(
     redis_client: redis_client
   )
   

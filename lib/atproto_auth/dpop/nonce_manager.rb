@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-module AtprotoAuth
+module AuthProto
   module DPoP
     # Manages DPoP nonces provided by servers during the OAuth flow.
     # Tracks separate nonces for each server using persistent storage.
     # Thread-safe to handle concurrent requests.
     class NonceManager
       # Error for nonce-related issues
-      class NonceError < AtprotoAuth::Error; end
+      class NonceError < AuthProto::Error; end
 
       # Represents a stored nonce with its server URL
       class StoredNonce
@@ -40,7 +40,7 @@ module AtprotoAuth
         serialized = @serializer.serialize(stored_nonce)
 
         key = Storage::KeyBuilder.nonce_key(origin)
-        return if AtprotoAuth.storage.set(key, serialized, ttl: @ttl)
+        return if AuthProto.storage.set(key, serialized, ttl: @ttl)
 
         raise NonceError, "Failed to store nonce"
       end
@@ -54,7 +54,7 @@ module AtprotoAuth
         origin = normalize_server_url(server_url)
         key = Storage::KeyBuilder.nonce_key(origin)
 
-        stored = AtprotoAuth.storage.get(key)
+        stored = AuthProto.storage.get(key)
         return nil unless stored
 
         begin
@@ -71,7 +71,7 @@ module AtprotoAuth
         validate_server_url!(server_url)
         origin = normalize_server_url(server_url)
         key = Storage::KeyBuilder.nonce_key(origin)
-        AtprotoAuth.storage.delete(key)
+        AuthProto.storage.delete(key)
       end
 
       # Check if a server has a valid nonce
@@ -81,7 +81,7 @@ module AtprotoAuth
         validate_server_url!(server_url)
         origin = normalize_server_url(server_url)
         key = Storage::KeyBuilder.nonce_key(origin)
-        AtprotoAuth.storage.exists?(key)
+        AuthProto.storage.exists?(key)
       end
 
       private

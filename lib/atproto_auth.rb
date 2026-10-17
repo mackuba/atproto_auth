@@ -17,8 +17,8 @@ require "atproto_auth/storage/interface"
 require "atproto_auth/storage/key_builder"
 require "atproto_auth/storage/memory"
 
-AtprotoAuth::Storage.autoload :Redis, "atproto_auth/storage/redis"
-AtprotoAuth::Storage.autoload :SQLite, "atproto_auth/storage/sqlite"
+AuthProto::Storage.autoload :Redis, "atproto_auth/storage/redis"
+AuthProto::Storage.autoload :SQLite, "atproto_auth/storage/sqlite"
 
 require "atproto_auth/server_metadata"
 require "atproto_auth/server_metadata/origin_url"
@@ -56,10 +56,10 @@ require "atproto_auth/token/refresh"
 
 require "atproto_auth/client"
 
-# AtprotoAuth is a Ruby library implementing the AT Protocol OAuth specification.
+# AuthProto is a Ruby library implementing the AT Protocol OAuth specification.
 # It provides functionality for both client and server-side implementations of
 # the AT Protocol OAuth flow, including support for DPoP, PAR, and dynamic client registration.
-module AtprotoAuth
+module AuthProto
   class << self
     attr_writer :configuration
 

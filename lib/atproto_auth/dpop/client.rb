@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module AtprotoAuth
+module AuthProto
   module DPoP
     # High-level client for managing DPoP operations. Integrates key management,
     # proof generation, and nonce tracking to provide a complete DPoP client
@@ -14,7 +14,7 @@ module AtprotoAuth
     # - Response processing for nonce updates
     class Client
       # Error raised for DPoP client operations
-      class Error < AtprotoAuth::Error; end
+      class Error < AuthProto::Error; end
 
       # @return [KeyManager] DPoP key manager instance
       attr_reader :key_manager

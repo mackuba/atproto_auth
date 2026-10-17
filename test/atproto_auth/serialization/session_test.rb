@@ -2,16 +2,16 @@
 
 require_relative "../../test_helper"
 
-describe AtprotoAuth::Serialization::Session do
+describe AuthProto::Serialization::Session do
   let(:client_id) { "test_client" }
   let(:scope) { "test_scope" }
   let(:session) do
-    AtprotoAuth::State::Session.new(
+    AuthProto::State::Session.new(
       client_id: client_id,
       scope: scope
     )
   end
-  let(:serializer) { AtprotoAuth::Serialization::Session.new }
+  let(:serializer) { AuthProto::Serialization::Session.new }
 
   it "roundtrips a session object" do
     serialized = serializer.serialize(session)
@@ -33,7 +33,7 @@ describe AtprotoAuth::Serialization::Session do
   end
 
   it "validates object type" do
-    assert_raises(AtprotoAuth::Serialization::ValidationError) do
+    assert_raises(AuthProto::Serialization::ValidationError) do
       serializer.serialize(Object.new)
     end
   end

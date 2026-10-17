@@ -3,12 +3,12 @@
 require_relative "../../test_helper"
 require_relative "storage_examples"
 
-describe AtprotoAuth::Storage::Redis do
+describe AuthProto::Storage::Redis do
   let(:redis) { Redis.new(url: ENV.fetch("REDIS_URL")) }
-  let(:storage) { AtprotoAuth::Storage::Redis.new(redis_client: redis) }
+  let(:storage) { AuthProto::Storage::Redis.new(redis_client: redis) }
 
   # Include shared storage implementation tests
-  include AtprotoAuth::Test::StorageExamples
+  include AuthProto::Test::StorageExamples
 
   unless ENV["REDIS_URL"]
     warn "** Set REDIS_URL to run Redis storage tests"
@@ -25,12 +25,12 @@ describe AtprotoAuth::Storage::Redis do
   describe "#initialize" do
     it "accepts a custom redis client" do
       custom_redis = Redis.new
-      storage = AtprotoAuth::Storage::Redis.new(redis_client: custom_redis)
+      storage = AuthProto::Storage::Redis.new(redis_client: custom_redis)
       _(storage.instance_variable_get(:@redis_client)).must_equal custom_redis
     end
 
     it "creates default redis client if none provided" do
-      storage = AtprotoAuth::Storage::Redis.new
+      storage = AuthProto::Storage::Redis.new
       _(storage.instance_variable_get(:@redis_client)).must_be_instance_of Redis
     end
   end
@@ -38,7 +38,7 @@ describe AtprotoAuth::Storage::Redis do
   describe "error handling" do
     it "wraps Redis connection errors" do
       redis.stub(:set, proc { raise Redis::ConnectionError }) do
-        assert_raises(AtprotoAuth::Storage::Redis::RedisError) do
+        assert_raises(AuthProto::Storage::Redis::RedisError) do
           storage.set("atproto:test:key", "value")
         end
       end
@@ -46,7 +46,7 @@ describe AtprotoAuth::Storage::Redis do
 
     it "wraps Redis command errors" do
       redis.stub(:get, proc { raise Redis::CommandError }) do
-        assert_raises(AtprotoAuth::Storage::Redis::RedisError) do
+        assert_raises(AuthProto::Storage::Redis::RedisError) do
           storage.get("atproto:test:key")
         end
       end
@@ -96,7 +96,7 @@ describe AtprotoAuth::Storage::Redis do
 
     it "releases lock if Redis connection fails during block execution" do
       redis.stub(:del, proc { raise Redis::ConnectionError }) do
-        assert_raises(AtprotoAuth::Storage::Redis::RedisError) do
+        assert_raises(AuthProto::Storage::Redis::RedisError) do
           storage.with_lock("atproto:test:lock", ttl: 30) { true }
         end
       end

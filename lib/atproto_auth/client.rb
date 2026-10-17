@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module AtprotoAuth
+module AuthProto
   # Main client class for AT Protocol OAuth implementation. Handles the complete
   # OAuth flow including authorization, token management, and identity verification.
   class Client
@@ -107,7 +107,7 @@ module AtprotoAuth
       # Verify issuer matches session
       raise CallbackError, "Issuer mismatch" unless session.auth_server && session.auth_server.issuer == iss
 
-      AtprotoAuth.storage.with_lock(Storage::KeyBuilder.lock_key("session", session.session_id), ttl: 30) do
+      AuthProto.storage.with_lock(Storage::KeyBuilder.lock_key("session", session.session_id), ttl: 30) do
         # Exchange code for tokens
         token_response = exchange_code(
           code: code,
@@ -166,7 +166,7 @@ module AtprotoAuth
       raise TokenError, "Invalid session" unless session
       raise TokenError, "Session not authorized" unless session.renewable?
 
-      AtprotoAuth.storage.with_lock(Storage::KeyBuilder.lock_key("session", session.session_id), ttl: 30) do
+      AuthProto.storage.with_lock(Storage::KeyBuilder.lock_key("session", session.session_id), ttl: 30) do
         refresher = Token::Refresh.new(
           session: session,
           dpop_client: @dpop_client,
@@ -228,7 +228,7 @@ module AtprotoAuth
     # @return [void]
     def remove_session(session_id)
       key = Storage::KeyBuilder.session_key(session_id)
-      AtprotoAuth.storage.delete(key)
+      AuthProto.storage.delete(key)
       session_manager.remove_session(session_id)
     end
 
@@ -414,7 +414,7 @@ module AtprotoAuth
         )
       end
 
-      AtprotoAuth.configuration.http_client.post(
+      AuthProto.configuration.http_client.post(
         session.auth_server.token_endpoint,
         body: body,
         headers: {

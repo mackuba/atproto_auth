@@ -3,10 +3,10 @@
 require_relative "../../test_helper"
 require_relative "storage_examples"
 
-describe AtprotoAuth::Storage::Memory do
-  let(:storage) { AtprotoAuth::Storage::Memory.new }
+describe AuthProto::Storage::Memory do
+  let(:storage) { AuthProto::Storage::Memory.new }
 
-  include AtprotoAuth::Test::StorageExamples
+  include AuthProto::Test::StorageExamples
 
   describe "memory-specific behavior" do
     it "cleans up expired keys automatically" do

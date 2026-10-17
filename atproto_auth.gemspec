@@ -4,7 +4,7 @@ require_relative "lib/atproto_auth/version"
 
 Gem::Specification.new do |spec|
   spec.name = "atproto_auth"
-  spec.version = AtprotoAuth::VERSION
+  spec.version = AuthProto::VERSION
   spec.authors = ["Josh Huckabee"]
   spec.email = ["mail@joshhuckabee.com"]
 

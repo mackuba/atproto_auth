@@ -4,7 +4,7 @@ require "securerandom"
 require "base64"
 require "openssl"
 
-module AtprotoAuth
+module AuthProto
   # Handles creation and processing of Pushed Authorization Requests (PAR)
   # according to RFC 9126 and AT Protocol OAuth requirements.
   #
@@ -14,7 +14,7 @@ module AtprotoAuth
   # are then included in the authorization redirect.
   #
   # @example Basic PAR request
-  #   par = AtprotoAuth::PAR::Client.new(endpoint: "https://auth.example.com/par")
+  #   par = AuthProto::PAR::Client.new(endpoint: "https://auth.example.com/par")
   #
   #   request = par.create_request(
   #     client_id: "https://app.example.com/client-metadata.json",
@@ -33,7 +33,7 @@ module AtprotoAuth
   #   )
   module PAR
     # Error raised for PAR-related issues
-    class Error < AtprotoAuth::Error; end
+    class Error < AuthProto::Error; end
 
     CLIENT_ASSERTION_TYPE = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
   end

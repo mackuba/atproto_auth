@@ -1,4 +1,4 @@
-module AtprotoAuth
+module AuthProto
   module PAR
     class Client
       @endpoint: String

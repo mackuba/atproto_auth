@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module AtprotoAuth
+module AuthProto
   # Manages OAuth state for AT Protocol authorization flows. This module provides thread-safe
   # storage and management of authorization session data, including tokens, PKCE values,
   # and identity information.
@@ -20,7 +20,7 @@ module AtprotoAuth
   #    with support for lookup by session ID or state token.
   #
   # @example Creating and managing a session
-  #   manager = AtprotoAuth::State::SessionManager.new
+  #   manager = AuthProto::State::SessionManager.new
   #
   #   # Create a new session
   #   session = manager.create_session(
@@ -49,6 +49,6 @@ module AtprotoAuth
   # consistency of session data through synchronized access.
   module State
     # Error raised for session-related issues
-    class SessionError < AtprotoAuth::Error; end
+    class SessionError < AuthProto::Error; end
   end
 end

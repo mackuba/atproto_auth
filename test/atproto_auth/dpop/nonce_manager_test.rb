@@ -2,13 +2,13 @@
 
 require_relative "../../test_helper"
 
-describe AtprotoAuth::DPoP::NonceManager do
+describe AuthProto::DPoP::NonceManager do
   let(:server_url) { "https://example.com" }
   let(:invalid_server_url) { "http://example.com" }
   let(:nonce) { "valid_nonce" }
   let(:expired_nonce) { "expired_nonce" }
   let(:ttl) { 2 } # Custom TTL for testing expiration
-  let(:nonce_manager) { AtprotoAuth::DPoP::NonceManager.new(ttl: ttl) }
+  let(:nonce_manager) { AuthProto::DPoP::NonceManager.new(ttl: ttl) }
 
   after do
     nonce_manager.clear(server_url)
@@ -16,8 +16,8 @@ describe AtprotoAuth::DPoP::NonceManager do
 
   describe "#initialize" do
     it "initializes with a default TTL" do
-      manager = AtprotoAuth::DPoP::NonceManager.new
-      _(manager.instance_variable_get(:@ttl)).must_equal AtprotoAuth::DPoP::NonceManager::DEFAULT_TTL
+      manager = AuthProto::DPoP::NonceManager.new
+      _(manager.instance_variable_get(:@ttl)).must_equal AuthProto::DPoP::NonceManager::DEFAULT_TTL
     end
 
     it "initializes with a custom TTL" do
@@ -45,13 +45,13 @@ describe AtprotoAuth::DPoP::NonceManager do
     end
 
     it "raises an error if nonce is invalid" do
-      assert_raises(AtprotoAuth::DPoP::NonceManager::NonceError) do
+      assert_raises(AuthProto::DPoP::NonceManager::NonceError) do
         nonce_manager.update(nonce: "", server_url: server_url)
       end
     end
 
     it "raises an error if server_url is invalid" do
-      assert_raises(AtprotoAuth::DPoP::NonceManager::NonceError) do
+      assert_raises(AuthProto::DPoP::NonceManager::NonceError) do
         nonce_manager.update(nonce: nonce, server_url: invalid_server_url)
       end
     end
@@ -74,7 +74,7 @@ describe AtprotoAuth::DPoP::NonceManager do
     end
 
     it "raises an error if server_url is invalid" do
-      assert_raises(AtprotoAuth::DPoP::NonceManager::NonceError) do
+      assert_raises(AuthProto::DPoP::NonceManager::NonceError) do
         nonce_manager.get("")
       end
     end
@@ -105,7 +105,7 @@ describe AtprotoAuth::DPoP::NonceManager do
     end
 
     it "raises an error if server_url is invalid" do
-      assert_raises(AtprotoAuth::DPoP::NonceManager::NonceError) do
+      assert_raises(AuthProto::DPoP::NonceManager::NonceError) do
         nonce_manager.valid_nonce?("")
       end
     end

@@ -2,9 +2,9 @@
 
 require_relative "../../test_helper"
 
-describe AtprotoAuth::Serialization::TokenSet do
+describe AuthProto::Serialization::TokenSet do
   let(:token_set) do
-    AtprotoAuth::State::TokenSet.new(
+    AuthProto::State::TokenSet.new(
       access_token: "test_access_token",
       refresh_token: "test_refresh_token",
       token_type: "DPoP",
@@ -13,7 +13,7 @@ describe AtprotoAuth::Serialization::TokenSet do
       sub: "test_sub"
     )
   end
-  let(:serializer) { AtprotoAuth::Serialization::TokenSet.new }
+  let(:serializer) { AuthProto::Serialization::TokenSet.new }
 
   it "roundtrips a token set object" do
     serialized = serializer.serialize(token_set)
@@ -34,7 +34,7 @@ describe AtprotoAuth::Serialization::TokenSet do
   end
 
   it "validates object type" do
-    assert_raises(AtprotoAuth::Serialization::ValidationError) do
+    assert_raises(AuthProto::Serialization::ValidationError) do
       serializer.serialize(Object.new)
     end
   end

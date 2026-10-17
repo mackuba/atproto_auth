@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module AtprotoAuth
+module AuthProto
   module Serialization
     # Handles serialization of DPoP keys
     class DPoPKey < Base
@@ -11,7 +11,7 @@ module AtprotoAuth
       private
 
       def validate_object!(obj)
-        return if obj.is_a?(AtprotoAuth::DPoP::KeyManager)
+        return if obj.is_a?(AuthProto::DPoP::KeyManager)
 
         raise ValidationError,
               "Expected KeyManager object, got #{obj.class}"
@@ -22,7 +22,7 @@ module AtprotoAuth
       end
 
       def deserialize_data(data)
-        AtprotoAuth::DPoP::KeyManager.from_jwk(data)
+        AuthProto::DPoP::KeyManager.from_jwk(data)
       end
     end
   end

@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-module AtprotoAuth
+module AuthProto
   module DPoP
     # Manages ES256 keypair generation and storage for DPoP proofs.
     # Provides functionality to generate new keys and store them securely.
     # Uses JOSE for cryptographic operations and key format handling.
     class KeyManager
       # Error raised when key operations fail
-      class KeyError < AtprotoAuth::Error; end
+      class KeyError < AuthProto::Error; end
 
       # Default curve for ES256 key generation
       CURVE = "P-256"

@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-module AtprotoAuth
+module AuthProto
   module Token
     # Base error class for token-related errors
-    class Error < AtprotoAuth::Error
+    class Error < AuthProto::Error
       attr_reader :token_type, :error_code, :retry_possible
 
       def initialize(message, token_type:, error_code:, retry_possible: false)
@@ -153,7 +153,7 @@ module AtprotoAuth
         # Add client authentication if available
         add_client_authentication!(body) if client_metadata.confidential?
 
-        AtprotoAuth.configuration.http_client.post(
+        AuthProto.configuration.http_client.post(
           auth_server.token_endpoint,
           body: body,
           headers: {
@@ -219,7 +219,7 @@ module AtprotoAuth
         data = JSON.parse(response[:body])
         validate_refresh_response!(data)
 
-        AtprotoAuth::State::TokenSet.new(
+        AuthProto::State::TokenSet.new(
           access_token: data["access_token"],
           token_type: data["token_type"],
           expires_in: data["expires_in"],

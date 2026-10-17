@@ -2,7 +2,7 @@
 
 require_relative "../../test_helper"
 
-describe AtprotoAuth::State::TokenSet do
+describe AuthProto::State::TokenSet do
   let(:access_token) { "valid_access_token" }
   let(:refresh_token) { "valid_refresh_token" }
   let(:token_type) { "DPoP" }
@@ -10,7 +10,7 @@ describe AtprotoAuth::State::TokenSet do
   let(:scope) { "read write" }
   let(:sub) { "did:example:1234" }
   let(:token_set) do
-    AtprotoAuth::State::TokenSet.new(
+    AuthProto::State::TokenSet.new(
       access_token: access_token,
       token_type: token_type,
       expires_in: expires_in,
@@ -33,7 +33,7 @@ describe AtprotoAuth::State::TokenSet do
 
     it "raises an error if token_type is not 'DPoP'" do
       assert_raises(ArgumentError, "token_type must be DPoP") do
-        AtprotoAuth::State::TokenSet.new(
+        AuthProto::State::TokenSet.new(
           access_token: access_token,
           token_type: "Bearer",
           expires_in: expires_in,
@@ -46,7 +46,7 @@ describe AtprotoAuth::State::TokenSet do
 
     it "raises an error if required parameters are missing" do
       assert_raises(ArgumentError, "access_token is required") do
-        AtprotoAuth::State::TokenSet.new(
+        AuthProto::State::TokenSet.new(
           access_token: nil,
           token_type: token_type,
           expires_in: expires_in,
@@ -57,7 +57,7 @@ describe AtprotoAuth::State::TokenSet do
       end
 
       assert_raises(ArgumentError, "scope is required") do
-        AtprotoAuth::State::TokenSet.new(
+        AuthProto::State::TokenSet.new(
           access_token: access_token,
           token_type: token_type,
           expires_in: expires_in,
@@ -68,7 +68,7 @@ describe AtprotoAuth::State::TokenSet do
       end
 
       assert_raises(ArgumentError, "sub is required") do
-        AtprotoAuth::State::TokenSet.new(
+        AuthProto::State::TokenSet.new(
           access_token: access_token,
           token_type: token_type,
           expires_in: expires_in,
@@ -81,7 +81,7 @@ describe AtprotoAuth::State::TokenSet do
 
     it "raises an error if expires_in is not an integer" do
       assert_raises(ArgumentError, "expires_in must be an integer") do
-        AtprotoAuth::State::TokenSet.new(
+        AuthProto::State::TokenSet.new(
           access_token: access_token,
           token_type: token_type,
           expires_in: "1",
@@ -99,7 +99,7 @@ describe AtprotoAuth::State::TokenSet do
     end
 
     it "returns false if refresh_token is nil" do
-      token_set_without_refresh = AtprotoAuth::State::TokenSet.new(
+      token_set_without_refresh = AuthProto::State::TokenSet.new(
         access_token: access_token,
         token_type: token_type,
         expires_in: expires_in,
@@ -116,7 +116,7 @@ describe AtprotoAuth::State::TokenSet do
     end
 
     it "returns true if token has expired" do
-      expired_token_set = AtprotoAuth::State::TokenSet.new(
+      expired_token_set = AuthProto::State::TokenSet.new(
         access_token: access_token,
         token_type: token_type,
         expires_in: 1,
@@ -130,7 +130,7 @@ describe AtprotoAuth::State::TokenSet do
     end
 
     it "respects the buffer parameter for expiration check" do
-      token_set_with_buffer = AtprotoAuth::State::TokenSet.new(
+      token_set_with_buffer = AuthProto::State::TokenSet.new(
         access_token: access_token,
         token_type: token_type,
         expires_in: 10,

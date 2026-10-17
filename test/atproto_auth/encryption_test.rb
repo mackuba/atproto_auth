@@ -2,7 +2,7 @@
 
 require_relative "../test_helper"
 
-describe AtprotoAuth::Encryption do
+describe AuthProto::Encryption do
   describe "without ATPROTO_MASTER_KEY" do
     before do
       @original_master_key = ENV.delete("ATPROTO_MASTER_KEY")
@@ -13,15 +13,15 @@ describe AtprotoAuth::Encryption do
     end
 
     it "decrypts data using a separately created encryption service" do
-      first = AtprotoAuth::Encryption::Service.new
+      first = AuthProto::Encryption::Service.new
       encrypted = first.encrypt("access token", context: "data.access_token")
-      second = AtprotoAuth::Encryption::Service.new
+      second = AuthProto::Encryption::Service.new
 
       _(second.decrypt(encrypted, context: "data.access_token")).must_equal "access token"
     end
 
     it "generates the fallback key only once across key providers" do
-      provider_class = Class.new(AtprotoAuth::Encryption::KeyProvider)
+      provider_class = Class.new(AuthProto::Encryption::KeyProvider)
       SecureRandom.expects(:random_bytes).with(32).once.returns("x" * 32)
 
       _stdout, stderr = capture_io do
@@ -34,14 +34,14 @@ describe AtprotoAuth::Encryption do
     end
 
     it "roundtrips a session with nested tokens through separate serializers" do
-      session = AtprotoAuth::State::Session.new(client_id: "test-client", scope: "atproto")
-      session.tokens = AtprotoAuth::State::TokenSet.new(
+      session = AuthProto::State::Session.new(client_id: "test-client", scope: "atproto")
+      session.tokens = AuthProto::State::TokenSet.new(
         access_token: "access", refresh_token: "refresh", token_type: "DPoP",
         expires_in: 3600, scope: "atproto", sub: "did:plc:alice"
       )
 
-      serialized = AtprotoAuth::Serialization::Session.new.serialize(session)
-      restored = AtprotoAuth::Serialization::Session.new.deserialize(serialized)
+      serialized = AuthProto::Serialization::Session.new.serialize(session)
+      restored = AuthProto::Serialization::Session.new.deserialize(serialized)
 
       _(restored.pkce_verifier).must_equal session.pkce_verifier
       _(restored.tokens.access_token).must_equal "access"
@@ -49,10 +49,10 @@ describe AtprotoAuth::Encryption do
     end
 
     it "prefers an explicit environment key even after a fallback key was generated" do
-      AtprotoAuth::Encryption::KeyProvider.new
+      AuthProto::Encryption::KeyProvider.new
       ENV["ATPROTO_MASTER_KEY"] = Base64.strict_encode64("y" * 32)
-      configured = AtprotoAuth::Encryption::KeyProvider.new
-      expected = AtprotoAuth::Encryption::HKDF.derive(
+      configured = AuthProto::Encryption::KeyProvider.new
+      expected = AuthProto::Encryption::HKDF.derive(
         "y" * 32, salt: OpenSSL::Digest.digest("SHA256", "atproto-salt-test"), info: "atproto-test", length: 32
       )
 
@@ -60,8 +60,8 @@ describe AtprotoAuth::Encryption do
     end
   end
 
-  describe AtprotoAuth::Encryption::Service do
-    let(:encryption_service) { AtprotoAuth::Encryption::Service.new }
+  describe AuthProto::Encryption::Service do
+    let(:encryption_service) { AuthProto::Encryption::Service.new }
     let(:sample_data) { "sensitive data" }
     let(:context) { "access_token" }
 
@@ -69,7 +69,7 @@ describe AtprotoAuth::Encryption do
       it "encrypts data with a context" do
         result = encryption_service.encrypt(sample_data, context: context)
 
-        assert_equal AtprotoAuth::Encryption::Service::VERSION, result[:version]
+        assert_equal AuthProto::Encryption::Service::VERSION, result[:version]
         assert_kind_of String, result[:iv]
         assert_kind_of String, result[:data]
         assert_kind_of String, result[:tag]
@@ -96,19 +96,19 @@ describe AtprotoAuth::Encryption do
       end
 
       it "raises EncryptionError for nil data" do
-        assert_raises(AtprotoAuth::Encryption::EncryptionError, "Data cannot be nil") do
+        assert_raises(AuthProto::Encryption::EncryptionError, "Data cannot be nil") do
           encryption_service.encrypt(nil, context: context)
         end
       end
 
       it "raises EncryptionError for nil context" do
-        assert_raises(AtprotoAuth::Encryption::EncryptionError, "Context cannot be nil") do
+        assert_raises(AuthProto::Encryption::EncryptionError, "Context cannot be nil") do
           encryption_service.encrypt(sample_data, context: nil)
         end
       end
 
       it "raises EncryptionError for empty context" do
-        assert_raises(AtprotoAuth::Encryption::EncryptionError, "Context cannot be empty") do
+        assert_raises(AuthProto::Encryption::EncryptionError, "Context cannot be empty") do
           encryption_service.encrypt(sample_data, context: "")
         end
       end
@@ -131,7 +131,7 @@ describe AtprotoAuth::Encryption do
       it "raises DecryptionError for wrong context" do
         encrypted = encryption_service.encrypt(sample_data, context: context)
 
-        assert_raises(AtprotoAuth::Encryption::DecryptionError) do
+        assert_raises(AuthProto::Encryption::DecryptionError) do
           encryption_service.decrypt(encrypted, context: "wrong_context")
         end
       end
@@ -140,7 +140,7 @@ describe AtprotoAuth::Encryption do
         encrypted = encryption_service.encrypt(sample_data, context: context)
         encrypted[:data] = Base64.strict_encode64("tampered")
 
-        assert_raises(AtprotoAuth::Encryption::DecryptionError) do
+        assert_raises(AuthProto::Encryption::DecryptionError) do
           encryption_service.decrypt(encrypted, context: context)
         end
       end
@@ -149,26 +149,26 @@ describe AtprotoAuth::Encryption do
         encrypted = encryption_service.encrypt(sample_data, context: context)
         encrypted[:tag] = Base64.strict_encode64("tampered")
 
-        assert_raises(AtprotoAuth::Encryption::DecryptionError) do
+        assert_raises(AuthProto::Encryption::DecryptionError) do
           encryption_service.decrypt(encrypted, context: context)
         end
       end
 
       it "raises DecryptionError for nil encrypted data" do
-        assert_raises(AtprotoAuth::Encryption::DecryptionError, "Encrypted data cannot be nil") do
+        assert_raises(AuthProto::Encryption::DecryptionError, "Encrypted data cannot be nil") do
           encryption_service.decrypt(nil, context: context)
         end
       end
 
       it "raises DecryptionError for nil context" do
         encrypted = encryption_service.encrypt(sample_data, context: context)
-        assert_raises(AtprotoAuth::Encryption::DecryptionError, "Context cannot be nil") do
+        assert_raises(AuthProto::Encryption::DecryptionError, "Context cannot be nil") do
           encryption_service.decrypt(encrypted, context: nil)
         end
       end
 
       it "raises DecryptionError for invalid format" do
-        assert_raises(AtprotoAuth::Encryption::DecryptionError) do
+        assert_raises(AuthProto::Encryption::DecryptionError) do
           encryption_service.decrypt({ invalid: "format" }, context: context)
         end
       end
@@ -177,15 +177,15 @@ describe AtprotoAuth::Encryption do
         encrypted = encryption_service.encrypt(sample_data, context: context)
         encrypted[:version] = 999
 
-        assert_raises(AtprotoAuth::Encryption::DecryptionError) do
+        assert_raises(AuthProto::Encryption::DecryptionError) do
           encryption_service.decrypt(encrypted, context: context)
         end
       end
     end
   end
 
-  describe AtprotoAuth::Encryption::KeyProvider do
-    let(:key_provider) { AtprotoAuth::Encryption::KeyProvider.new }
+  describe AuthProto::Encryption::KeyProvider do
+    let(:key_provider) { AuthProto::Encryption::KeyProvider.new }
 
     describe "#key_for_context" do
       it "derives different keys for different contexts" do
@@ -208,7 +208,7 @@ describe AtprotoAuth::Encryption do
       end
 
       it "raises ConfigurationError for nil context" do
-        assert_raises(AtprotoAuth::Encryption::ConfigurationError) do
+        assert_raises(AuthProto::Encryption::ConfigurationError) do
           key_provider.key_for_context(nil)
         end
       end

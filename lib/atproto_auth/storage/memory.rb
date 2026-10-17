@@ -2,7 +2,7 @@
 
 require "monitor"
 
-module AtprotoAuth
+module AuthProto
   module Storage
     # Thread-safe in-memory storage implementation
     class Memory < Interface
@@ -157,7 +157,7 @@ module AtprotoAuth
             cleanup_expired
           rescue StandardError => e
             # Log error but keep thread running
-            AtprotoAuth.configuration.logger.error "Storage cleanup error: #{e.message}"
+            AuthProto.configuration.logger.error "Storage cleanup error: #{e.message}"
           end
         end
       end
