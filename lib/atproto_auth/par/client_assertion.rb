@@ -41,8 +41,9 @@ module AuthProto
         }
 
         # Sign and return the JWT
-        JWT.encode(payload, @signing_key.kty.key, "ES256", header)
-      rescue StandardError => e
+        key = JWT::JWK.import(@signing_key.to_map.to_h)
+        JWT.encode(payload, key, "ES256", header)
+      rescue JWT::Error, ArgumentError => e
         raise Error, "Failed to generate client assertion: #{e.message}"
       end
     end

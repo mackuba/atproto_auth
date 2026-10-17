@@ -3,7 +3,7 @@ PATH
   specs:
     atproto_auth (0.2.5)
       jose (~> 1.2)
-      jwt (~> 2.9)
+      jwt (~> 3.3)
 
 GEM
   remote: https://rubygems.org/
@@ -25,7 +25,7 @@ GEM
       base64
       immutable-ruby
     json (2.21.1)
-    jwt (2.10.3)
+    jwt (3.3.0)
       base64
     logger (1.7.0)
     multi_json (1.21.1)

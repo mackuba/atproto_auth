@@ -30,7 +30,8 @@ describe AuthProto::PAR::ClientAssertion do
       Time.stubs(:now).returns(Time.at(now)) # Stub Time.now for predictable timestamps
 
       jwt = client_assertion.generate_jwt(audience: audience, lifetime: lifetime)
-      decoded, header = JWT.decode(jwt, signing_key.kty.key, true, { algorithm: "ES256" })
+      public_key = JWT::JWK.import(signing_key.to_public.to_map.to_h).public_key
+      decoded, header = JWT.decode(jwt, public_key, true, { algorithm: "ES256" })
 
       # Verify claims
       _(decoded["iss"]).must_equal client_id
@@ -47,7 +48,7 @@ describe AuthProto::PAR::ClientAssertion do
     end
 
     it "raises an error if signing fails" do
-      signing_key.stubs(:kty).returns(nil) # Simulate a signing key failure
+      signing_key.stubs(:to_map).raises(ArgumentError, "Invalid key")
 
       error = assert_raises(AuthProto::PAR::ClientAssertion::Error) do
         client_assertion.generate_jwt(audience: audience)
@@ -56,12 +57,43 @@ describe AuthProto::PAR::ClientAssertion do
       _(error.message).must_match(/Failed to generate client assertion/)
     end
 
+    it "wraps JWT signing errors when only a public key is supplied" do
+      assertion = AuthProto::PAR::ClientAssertion.new(client_id: client_id, signing_key: signing_key.to_public)
+      error = assert_raises(AuthProto::PAR::ClientAssertion::Error) do
+        assertion.generate_jwt(audience: audience)
+      end
+
+      _(error.cause).must_be_kind_of JWT::EncodeError
+    end
+
+    it "rejects a signing key whose curve does not match ES256" do
+      assertion = AuthProto::PAR::ClientAssertion.new(
+        client_id: client_id, signing_key: JOSE::JWK.generate_key([:ec, "P-384"])
+      )
+      error = assert_raises(AuthProto::PAR::ClientAssertion::Error) do
+        assertion.generate_jwt(audience: audience)
+      end
+
+      _(error.cause).must_be_kind_of JWT::EncodeError
+    end
+
+    it "rejects a JWK algorithm that conflicts with ES256" do
+      key = JOSE::JWK.from_map(signing_key.to_map.to_h.merge("alg" => "ES384"))
+      assertion = AuthProto::PAR::ClientAssertion.new(client_id: client_id, signing_key: key)
+      error = assert_raises(AuthProto::PAR::ClientAssertion::Error) do
+        assertion.generate_jwt(audience: audience)
+      end
+
+      _(error.cause).must_be_kind_of JWT::EncodeError
+    end
+
     it "defaults the lifetime to 5 minutes" do
       now = Time.now.to_i
       Time.stubs(:now).returns(Time.at(now))
 
       jwt = client_assertion.generate_jwt(audience: audience)
-      decoded, _header = JWT.decode(jwt, signing_key.kty.key, true, { algorithm: "ES256" })
+      public_key = JWT::JWK.import(signing_key.to_public.to_map.to_h).public_key
+      decoded, _header = JWT.decode(jwt, public_key, true, { algorithm: "ES256" })
 
       _(decoded["exp"]).must_equal now + 300 # Default lifetime of 300 seconds
     end
@@ -70,7 +102,8 @@ describe AuthProto::PAR::ClientAssertion do
       jti_values = []
       5.times do
         jwt = client_assertion.generate_jwt(audience: audience)
-        decoded, = JWT.decode(jwt, signing_key.kty.key, true, { algorithm: "ES256" })
+        public_key = JWT::JWK.import(signing_key.to_public.to_map.to_h).public_key
+        decoded, = JWT.decode(jwt, public_key, true, { algorithm: "ES256" })
         jti_values << decoded["jti"]
       end
 
@@ -79,7 +112,8 @@ describe AuthProto::PAR::ClientAssertion do
 
     it "includes the correct kid in the header" do
       jwt = client_assertion.generate_jwt(audience: audience)
-      _decoded, header = JWT.decode(jwt, signing_key.kty.key, true, { algorithm: "ES256" })
+      public_key = JWT::JWK.import(signing_key.to_public.to_map.to_h).public_key
+      _decoded, header = JWT.decode(jwt, public_key, true, { algorithm: "ES256" })
 
       _(header["kid"]).must_equal "test-key-id"
     end

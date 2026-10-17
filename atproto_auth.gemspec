@@ -31,5 +31,5 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency "jose", "~> 1.2"
-  spec.add_dependency "jwt", "~> 2.9"
+  spec.add_dependency "jwt", "~> 3.3"
 end
