@@ -22,10 +22,13 @@ module AuthProto
   # - DPoP binding requirements
   # - URI scheme and format validation
   class ClientMetadata
+
     # Required fields
     attr_reader :application_type, :client_id, :grant_types, :response_types, :redirect_uris, :scope
+
     # Optional fields
     attr_reader :client_name, :client_uri, :logo_uri, :tos_uri, :policy_uri
+
     # Authentication and key-related fields
     attr_reader :token_endpoint_auth_method, :jwks, :jwks_uri
 

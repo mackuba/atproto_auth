@@ -22,14 +22,19 @@ module AuthProto
 
     # @return [String] OAuth client ID
     attr_reader :client_id
+
     # @return [String] OAuth redirect URI
     attr_reader :redirect_uri
+
     # @return [ClientMetadata] Validated client metadata
     attr_reader :client_metadata
+
     # @return [SessionManager] Session state manager
     attr_reader :session_manager
+
     # @return [Identity::Resolver] Identity resolver
     attr_reader :identity_resolver
+
     # @return [DPoP::Client] DPoP client
     attr_reader :dpop_client
 

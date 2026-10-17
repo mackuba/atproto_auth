@@ -18,8 +18,10 @@ module AuthProto
 
       # @return [KeyManager] DPoP key manager instance
       attr_reader :key_manager
+
       # @return [ProofGenerator] DPoP proof generator instance
       attr_reader :proof_generator
+
       # @return [NonceManager] DPoP nonce manager instance
       attr_reader :nonce_manager
 
