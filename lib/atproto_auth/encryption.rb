@@ -120,6 +120,15 @@ module AtprotoAuth
 
     # Handles key management and derivation
     class KeyProvider
+      EPHEMERAL_KEY_MUTEX = Mutex.new
+
+      # All serializers in this process must share the fallback master key.
+      def self.ephemeral_master_key
+        EPHEMERAL_KEY_MUTEX.synchronize do
+          @ephemeral_master_key ||= SecureRandom.random_bytes(32)
+        end
+      end
+
       def initialize
         @master_key = load_master_key
       end
@@ -143,9 +152,8 @@ module AtprotoAuth
         return Base64.strict_decode64(key) if key
 
         # Generate and store a random key if not configured
-        key = SecureRandom.random_bytes(32)
         warn "WARNING: Using randomly generated encryption key - tokens will not persist across restarts"
-        key
+        self.class.ephemeral_master_key
       end
 
       def salt_for_context(context)

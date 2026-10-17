@@ -3,6 +3,63 @@
 require_relative "../test_helper"
 
 describe AtprotoAuth::Encryption do
+  describe "without ATPROTO_MASTER_KEY" do
+    before do
+      @original_master_key = ENV.delete("ATPROTO_MASTER_KEY")
+    end
+
+    after do
+      ENV["ATPROTO_MASTER_KEY"] = @original_master_key
+    end
+
+    it "decrypts data using a separately created encryption service" do
+      first = AtprotoAuth::Encryption::Service.new
+      encrypted = first.encrypt("access token", context: "data.access_token")
+      second = AtprotoAuth::Encryption::Service.new
+
+      _(second.decrypt(encrypted, context: "data.access_token")).must_equal "access token"
+    end
+
+    it "generates the fallback key only once across key providers" do
+      provider_class = Class.new(AtprotoAuth::Encryption::KeyProvider)
+      SecureRandom.expects(:random_bytes).with(32).once.returns("x" * 32)
+
+      _stdout, stderr = capture_io do
+        first = provider_class.new
+        second = provider_class.new
+        _(second.key_for_context("test")).must_equal first.key_for_context("test")
+      end
+
+      assert stderr.include?("Using randomly generated encryption key")
+    end
+
+    it "roundtrips a session with nested tokens through separate serializers" do
+      session = AtprotoAuth::State::Session.new(client_id: "test-client", scope: "atproto")
+      session.tokens = AtprotoAuth::State::TokenSet.new(
+        access_token: "access", refresh_token: "refresh", token_type: "DPoP",
+        expires_in: 3600, scope: "atproto", sub: "did:plc:alice"
+      )
+
+      serialized = AtprotoAuth::Serialization::Session.new.serialize(session)
+      restored = AtprotoAuth::Serialization::Session.new.deserialize(serialized)
+
+      _(restored.pkce_verifier).must_equal session.pkce_verifier
+      _(restored.tokens.access_token).must_equal "access"
+      _(restored.tokens.refresh_token).must_equal "refresh"
+    end
+
+    it "prefers an explicit environment key even after a fallback key was generated" do
+      AtprotoAuth::Encryption::KeyProvider.new
+      ENV["ATPROTO_MASTER_KEY"] = Base64.strict_encode64("y" * 32)
+      configured = AtprotoAuth::Encryption::KeyProvider.new
+      expected = AtprotoAuth::Encryption::HKDF.derive(
+        "y" * 32, salt: OpenSSL::Digest.digest("SHA256", "atproto-salt-test"), info: "atproto-test", length: 32
+      )
+
+      _(configured.key_for_context("test")).must_equal expected
+    end
+  end
+
   describe AtprotoAuth::Encryption::Service do
     let(:encryption_service) { AtprotoAuth::Encryption::Service.new }
     let(:sample_data) { "sensitive data" }
