@@ -37,6 +37,8 @@ GEM
     jwt (3.3.0)
       base64
     logger (1.7.0)
+    minisky (0.5.1)
+      base64 (~> 0.1)
     minitest (5.27.0)
     minitest-reporters (1.8.0)
       ansi
@@ -91,6 +93,7 @@ PLATFORMS
 DEPENDENCIES
   atproto_auth!
   irb
+  minisky (~> 0.5.1)
   minitest (~> 5.25)
   minitest-reporters (~> 1.7)
   mocha (~> 2.6)

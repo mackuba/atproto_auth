@@ -5,6 +5,7 @@ source "https://rubygems.org"
 # Specify your gem's dependencies in atproto_auth.gemspec
 gemspec
 
+gem "minisky", "~> 0.5.1", require: false
 gem "minitest", "~> 5.25"
 gem "minitest-reporters", "~> 1.7"
 gem "mocha", "~> 2.6"
