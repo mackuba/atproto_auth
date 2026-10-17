@@ -54,7 +54,7 @@ module AuthProto
       # Checks if this document contains a specific handle
       # @param handle [String] Handle to check (with or without @ prefix)
       # @return [Boolean] true if handle is listed in alsoKnownAs
-      def has_handle?(handle) # rubocop:disable Naming/PredicateName
+      def has_handle?(handle)
         normalized = handle.start_with?("@") ? handle[1..] : handle
         @also_known_as.any? do |aka|
           aka.start_with?("at://") && aka.delete_prefix("at://") == normalized

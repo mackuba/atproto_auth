@@ -5,7 +5,7 @@ require_relative "../../test_helper"
 describe AuthProto::DPoP::Client do
   let(:mock_key_manager) do
     Class.new(AuthProto::DPoP::KeyManager) do
-      def initialize; end # rubocop:disable Lint/MissingSuper - prevent calling actual KeyManager initialization logic
+      def initialize; end
       def public_jwk = { kty: "EC", crv: "P-256", x: "test", y: "test" }
       def sign(_jwt_payload) = "signed_jwt"
     end.new

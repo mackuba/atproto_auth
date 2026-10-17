@@ -14,7 +14,7 @@ module AuthProto
       # @param refresh_token [String, nil] Optional refresh token
       # @param scope [String] Space-separated list of granted scopes
       # @param sub [String] DID of the authenticated user
-      def initialize( # rubocop:disable Metrics/ParameterLists
+      def initialize(
         access_token:,
         token_type:,
         expires_in:,

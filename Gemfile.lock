@@ -11,7 +11,6 @@ GEM
     addressable (2.9.0)
       public_suffix (>= 2.0.2, < 8.0)
     ansi (1.6.0)
-    ast (2.4.3)
     base64 (0.3.0)
     bigdecimal (4.1.2)
     builder (3.3.0)
@@ -35,11 +34,8 @@ GEM
     jose (1.2.0)
       base64
       immutable-ruby
-    json (2.21.1)
     jwt (3.3.0)
       base64
-    language_server-protocol (3.17.0.6)
-    lint_roller (1.1.0)
     logger (1.7.0)
     minitest (5.27.0)
     minitest-reporters (1.8.0)
@@ -51,9 +47,6 @@ GEM
       ruby2_keywords (>= 0.0.5)
     mutex_m (0.3.0)
     parallel (1.28.0)
-    parser (3.3.12.0)
-      ast (~> 2.4.1)
-      racc
     pp (0.6.4)
       prettyprint
     prettyprint (0.2.1)
@@ -62,8 +55,6 @@ GEM
       date
       stringio
     public_suffix (7.0.5)
-    racc (1.8.1)
-    rainbow (3.1.1)
     rake (13.4.2)
     rbs (3.10.4)
       logger
@@ -77,24 +68,9 @@ GEM
       redis-client (>= 0.22.0)
     redis-client (0.30.1)
       connection_pool
-    regexp_parser (2.12.0)
     reline (0.7.0)
       io-console (~> 0.5)
     rexml (3.4.4)
-    rubocop (1.88.2)
-      json (~> 2.3)
-      language_server-protocol (~> 3.17.0.2)
-      lint_roller (~> 1.1.0)
-      parallel (>= 1.10)
-      parser (>= 3.3.0.2)
-      rainbow (>= 2.2.2, < 4.0)
-      regexp_parser (>= 2.9.3, < 3.0)
-      rubocop-ast (>= 1.49.0, < 2.0)
-      ruby-progressbar (~> 1.7)
-      unicode-display_width (>= 2.4.0, < 4.0)
-    rubocop-ast (1.50.0)
-      parser (>= 3.3.7.2)
-      prism (~> 1.7)
     ruby-progressbar (1.13.0)
     ruby2_keywords (0.0.5)
     sorted_set (1.1.0)
@@ -103,9 +79,6 @@ GEM
     sqlite3 (2.9.5-x86_64-linux-gnu)
     stringio (3.2.0)
     tsort (0.2.0)
-    unicode-display_width (3.2.0)
-      unicode-emoji (~> 4.1)
-    unicode-emoji (4.2.0)
     webmock (3.26.2)
       addressable (>= 2.8.0)
       crack (>= 0.3.2)
@@ -126,7 +99,6 @@ DEPENDENCIES
   rake (~> 13.0)
   rbs (~> 3.6)
   redis (~> 5.4)
-  rubocop (~> 1.21)
   sqlite3 (~> 2.9)
   webmock (~> 3.24)
 

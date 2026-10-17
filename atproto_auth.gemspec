@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.email = ["mail@joshhuckabee.com"]
 
   spec.summary = "Ruby implementation of the AT Protocol OAuth specification"
-  spec.description = "A Ruby library for implementing AT Protocol OAuth flows, including DPoP, PAR, and dynamic client registration. Supports both client and server-side implementations with comprehensive security features." # rubocop:disable Layout/LineLength
+  spec.description = "A Ruby library for implementing AT Protocol OAuth flows, including DPoP, PAR, and dynamic client registration. Supports both client and server-side implementations with comprehensive security features."
   spec.homepage = "https://github.com/jhuckabee/atproto_auth"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.2.0"

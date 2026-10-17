@@ -1,7 +1,6 @@
 # AuthProto
 
 [![Gem Version](https://img.shields.io/gem/v/atproto_auth.svg)](https://rubygems.org/gems/atproto_auth)
-[![Ruby Style Guide](https://img.shields.io/badge/code_style-rubocop-blue.svg)](https://github.com/rubocop/rubocop)
 [![Documentation](https://img.shields.io/badge/docs-rdoc-blue.svg)](https://www.rubydoc.info/gems/atproto_auth)
 
 A Ruby implementation of the [AT Protocol OAuth specification](https://atproto.com/specs/oauth). This library provides support for both client and server-side implementations, with built-in security features including [DPoP](https://datatracker.ietf.org/doc/html/rfc9449), [PAR](https://datatracker.ietf.org/doc/html/rfc9126), and dynamic client registration.
