@@ -10,6 +10,7 @@ require "atproto_auth/configuration"
 require "atproto_auth/encryption"
 require "atproto_auth/client_metadata"
 require "atproto_auth/http_client"
+require "atproto_auth/insecure_http_client"
 require "atproto_auth/pkce"
 
 require "atproto_auth/storage/interface"

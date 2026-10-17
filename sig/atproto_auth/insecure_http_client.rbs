@@ -1,0 +1,9 @@
+module AtprotoAuth
+  class InsecureHttpClient < HttpClient
+    ALLOWED_SCHEMES: ::Array[String]
+
+    private
+
+    def validate_ip!: (URI uri) -> void
+  end
+end

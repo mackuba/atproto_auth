@@ -72,6 +72,26 @@ gem 'sqlite3', '~> 2.9'
 gem 'redis', '~> 5.4'
 ```
 
+### Local HTTP debugging
+
+For debugging a flow that needs both local HTTP and remote HTTPS (handle/PLC
+resolution, metadata discovery and OAuth requests), explicitly select:
+
+```ruby
+AtprotoAuth.configure do |config|
+  config.http_client = AtprotoAuth::InsecureHttpClient.new(timeout: 10)
+end
+```
+
+`InsecureHttpClient` accepts HTTP and HTTPS, including loopback and private-network
+destinations, and permits redirects between them. It disables the regular client's
+scheme/IP restrictions for development; HTTPS certificate verification stays enabled
+by default. Timeouts, response size limits and request headers are inherited.
+
+The regular `HttpClient` accepts HTTPS and rejects loopback/private addresses.
+Use it for remote OAuth servers, including when your application's callback is
+local: the browser, rather than this HTTP client, follows the callback redirect.
+
 ### Storage Backends
 
 The library supports multiple storage backends for managing OAuth state:

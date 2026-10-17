@@ -3,6 +3,7 @@
 require "net/http"
 require "uri"
 require "ipaddr"
+require "resolv"
 
 module AtprotoAuth
   # A secure HTTP client for making OAuth-related requests.
@@ -91,8 +92,8 @@ module AtprotoAuth
 
     def validate_uri!(url)
       uri = URI(url)
-      unless ALLOWED_SCHEMES.include?(uri.scheme)
-        raise SSRFError, "URL scheme must be one of: #{ALLOWED_SCHEMES.join(", ")}"
+      unless self.class::ALLOWED_SCHEMES.include?(uri.scheme)
+        raise SSRFError, "URL scheme must be one of: #{self.class::ALLOWED_SCHEMES.join(", ")}"
       end
 
       # Extract and validate host before any network activity
@@ -133,8 +134,8 @@ module AtprotoAuth
     end
 
     def make_request(uri, headers = {}, redirect_count = 0)
-      http = Net::HTTP.new(uri.host, uri.port)
-      configure_http_client!(http)
+      http = Net::HTTP.new(uri.hostname, uri.port)
+      configure_http_client!(http, ssl: uri.scheme == "https")
 
       request = Net::HTTP::Get.new(uri.request_uri)
       add_security_headers!(request, headers)
@@ -152,8 +153,8 @@ module AtprotoAuth
     end
 
     def make_post_request(uri, body, headers = {}, redirect_count = 0)
-      http = Net::HTTP.new(uri.host, uri.port)
-      configure_http_client!(http)
+      http = Net::HTTP.new(uri.hostname, uri.port)
+      configure_http_client!(http, ssl: uri.scheme == "https")
 
       request = Net::HTTP::Post.new(uri.request_uri)
       add_security_headers!(request, headers)
@@ -174,8 +175,8 @@ module AtprotoAuth
       raise HttpError.new("Request failed: #{e.message}", nil)
     end
 
-    def configure_http_client!(http)
-      http.use_ssl = true
+    def configure_http_client!(http, ssl: true)
+      http.use_ssl = ssl
       http.verify_mode = @verify_ssl ? OpenSSL::SSL::VERIFY_PEER : OpenSSL::SSL::VERIFY_NONE
       http.read_timeout = @timeout
       http.open_timeout = @timeout

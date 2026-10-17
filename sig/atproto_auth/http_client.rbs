@@ -41,7 +41,7 @@ module AtprotoAuth
 
     def make_request: (URI uri, ?::Hash[String, String] headers) -> ::Net::HTTPResponse
 
-    def configure_http_client!: (::Net::HTTP http) -> void
+    def configure_http_client!: (::Net::HTTP http, ?ssl: bool) -> void
 
     def add_security_headers!: (::Net::HTTP::Get request, ::Hash[String, String] headers) -> void
 
