@@ -27,7 +27,7 @@ module AuthProto
 
       def normalize_handle: (String handle) -> String
 
-      def resolve_handle_dns: (String _handle) -> nil
+      def resolve_handle_dns: (String handle) -> nil
 
       def resolve_handle_http: (String handle) -> Hash[Symbol, untyped]
 

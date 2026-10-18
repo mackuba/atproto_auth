@@ -232,7 +232,7 @@ class MiniskyOAuth
 
     loop do
       # Fresh proof for every attempt; callers cannot override OAuth auth headers.
-      request_headers = headers.reject { |key, _| %w[authorization dpop].include?(key.to_s.downcase) }
+      request_headers = headers.reject { |k, v| %w[authorization dpop].include?(k.to_s.downcase) }
       request_headers.merge!(oauth_client.auth_headers(
                                session_id: session_id, method: request_class::METHOD, url: proof_url.to_s
                              ))

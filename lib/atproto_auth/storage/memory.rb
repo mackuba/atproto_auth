@@ -199,7 +199,7 @@ module AuthProto
           end
 
           # Cleanup expired locks
-          @locks.delete_if { |_, expiry| now >= expiry }
+          @locks.delete_if { |key, expiry| now >= expiry }
         end
       end
 

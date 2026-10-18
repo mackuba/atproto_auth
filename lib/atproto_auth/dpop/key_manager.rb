@@ -150,7 +150,7 @@ module AuthProto
       # @raise [KeyError] if decoding or verification raises an error
       #
       def verify(signed_jws)
-        verified, _payload, = @keypair.verify(signed_jws)
+        verified, payload, = @keypair.verify(signed_jws)
         verified
       rescue StandardError => e
         raise KeyError, "Failed to verify signature: #{e.message}"

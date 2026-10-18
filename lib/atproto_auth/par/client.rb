@@ -178,7 +178,7 @@ module AuthProto
         )
       end
 
-      def build_headers(_request, dpop_proof)
+      def build_headers(request, dpop_proof)
         {
           "Content-Type" => "application/x-www-form-urlencoded",
           "DPoP" => dpop_proof

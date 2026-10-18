@@ -5,7 +5,7 @@ describe AuthProto::DPoP::Client do
     Class.new(AuthProto::DPoP::KeyManager) do
       def initialize; end
       def public_jwk = { kty: "EC", crv: "P-256", x: "test", y: "test" }
-      def sign(_jwt_payload) = "signed_jwt"
+      def sign(jwt_payload) = "signed_jwt"
     end.new
   end
 

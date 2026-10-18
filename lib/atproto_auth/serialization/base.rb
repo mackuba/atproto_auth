@@ -194,28 +194,28 @@ module AuthProto
 
       # Serialize object to hash
       #
-      # @param _obj [Object] Object to serialize
+      # @param obj [Object] Object to serialize
       # @return [Hash] Serialized data
       #
-      def serialize_data(_obj)
+      def serialize_data(obj)
         raise NotImplementedError
       end
 
       # Deserialize object from hash
       #
-      # @param _data [Hash] Serialized data
+      # @param data [Hash] Serialized data
       # @return [Object] Deserialized object
       #
-      def deserialize_data(_data)
+      def deserialize_data(data)
         raise NotImplementedError
       end
 
       # Validate object before serialization
       #
-      # @param _obj [Object] Object to validate
+      # @param obj [Object] Object to validate
       # @raise [ValidationError] if object is invalid
       #
-      def validate_object!(_obj)
+      def validate_object!(obj)
         raise NotImplementedError
       end
 

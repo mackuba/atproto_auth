@@ -91,7 +91,7 @@ describe AuthProto::PAR::ClientAssertion do
 
       jwt = client_assertion.generate_jwt(audience: audience)
       public_key = JWT::JWK.import(signing_key.to_public.to_map.to_h).public_key
-      decoded, _header = JWT.decode(jwt, public_key, true, { algorithm: "ES256" })
+      decoded, header = JWT.decode(jwt, public_key, true, { algorithm: "ES256" })
 
       decoded["exp"].should == now + 300 # Default lifetime of 300 seconds
     end
@@ -111,7 +111,7 @@ describe AuthProto::PAR::ClientAssertion do
     it "should include the correct kid in the header" do
       jwt = client_assertion.generate_jwt(audience: audience)
       public_key = JWT::JWK.import(signing_key.to_public.to_map.to_h).public_key
-      _decoded, header = JWT.decode(jwt, public_key, true, { algorithm: "ES256" })
+      decoded, header = JWT.decode(jwt, public_key, true, { algorithm: "ES256" })
 
       header["kid"].should == "test-key-id"
     end
