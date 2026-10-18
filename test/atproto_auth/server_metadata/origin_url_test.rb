@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'uri'
+
 require_relative '../../test_helper'
 
 describe AuthProto::ServerMetadata::OriginUrl do

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'json'
+
 require 'test_helper'
 
 describe AuthProto::Token::Refresh do

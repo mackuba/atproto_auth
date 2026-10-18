@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+require 'base64'
+require 'openssl'
+require 'securerandom'
+
 # lib/atproto_auth/encryption.rb
 module AuthProto
   module Encryption

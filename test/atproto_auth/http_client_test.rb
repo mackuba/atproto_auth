@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+require 'net/http'
+require 'openssl'
+require 'resolv'
+
 require_relative '../test_helper'
 
 describe AuthProto::HttpClient do

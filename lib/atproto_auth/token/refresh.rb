@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require 'json'
+require 'monitor'
+
 module AuthProto
   module Token
     # Base error class for token-related errors

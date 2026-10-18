@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'uri'
+
 module AuthProto
   module DPoP
     # High-level client for managing DPoP operations. Integrates key management,

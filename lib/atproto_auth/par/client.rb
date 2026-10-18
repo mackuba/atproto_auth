@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require 'cgi'
+require 'json'
+require 'uri'
 
 module AuthProto
   module PAR

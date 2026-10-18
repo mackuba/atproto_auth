@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'securerandom'
+
 module AuthProto
   module PAR
     # Generates client authentication JWTs according to RFC 7523 for AT Protocol OAuth.

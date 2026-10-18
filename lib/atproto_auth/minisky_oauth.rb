@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+require 'json'
+require 'net/http'
+require 'uri'
+
 require 'atproto_auth'
 require 'minisky'
 

@@ -1,5 +1,10 @@
 # frozen_string_literal: true
 
+require 'json'
+require 'net/http'
+require 'openssl'
+require 'resolv'
+
 require_relative '../test_helper'
 
 describe AuthProto::InsecureHttpClient do

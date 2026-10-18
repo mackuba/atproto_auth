@@ -1,10 +1,14 @@
 # frozen_string_literal: true
 
-require 'atproto_auth'
 require 'cgi'
+require 'json'
+require 'securerandom'
+require 'time'
+require 'uri'
+
+require 'atproto_auth'
 require 'dotenv/load'
 require 'faraday'
-require 'json'
 require 'sinatra/base'
 require 'sinatra/reloader'
 

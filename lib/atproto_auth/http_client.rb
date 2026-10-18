@@ -2,6 +2,7 @@
 
 require 'ipaddr'
 require 'net/http'
+require 'openssl'
 require 'resolv'
 require 'uri'
 

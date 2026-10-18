@@ -1,5 +1,10 @@
 # frozen_string_literal: true
 
+require 'json'
+require 'net/http'
+require 'resolv'
+require 'uri'
+
 require_relative '../test_helper'
 require 'atproto_auth/minisky_oauth'
 

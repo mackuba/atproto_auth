@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require 'json'
+require 'uri'
+
 module AuthProto
   module ServerMetadata
     # Handles fetching and validation of AT Protocol OAuth Authorization Server metadata.

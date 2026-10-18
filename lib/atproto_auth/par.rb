@@ -1,9 +1,5 @@
 # frozen_string_literal: true
 
-require 'base64'
-require 'openssl'
-require 'securerandom'
-
 module AuthProto
   # Handles creation and processing of Pushed Authorization Requests (PAR)
   # according to RFC 9126 and AT Protocol OAuth requirements.

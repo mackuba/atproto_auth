@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'resolv'
-
 module AuthProto
   module Identity
     # Validates decentralized identifiers (DIDs)

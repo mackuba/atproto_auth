@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require 'json'
+require 'uri'
+
 module AuthProto
   module ServerMetadata
     # This class represents a Resource Server (PDS) and is responsible for

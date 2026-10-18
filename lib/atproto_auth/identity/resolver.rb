@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
+require 'json'
+require 'logger'
 require 'resolv'
+require 'uri'
 
 module AuthProto
   module Identity

@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
+require 'base64'
+require 'openssl'
 require 'securerandom'
-require 'time'
+require 'uri'
 
 module AuthProto
   module DPoP

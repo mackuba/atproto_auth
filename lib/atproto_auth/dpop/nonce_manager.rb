@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'uri'
+
 module AuthProto
   module DPoP
     # Manages DPoP nonces provided by servers during the OAuth flow.

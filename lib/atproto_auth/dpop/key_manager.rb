@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+require 'base64'
+require 'json'
+require 'openssl'
+
 module AuthProto
   module DPoP
     # Manages ES256 keypair generation and storage for DPoP proofs.

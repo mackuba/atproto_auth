@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'json'
+
 module AuthProto
   # Main client class for AT Protocol OAuth implementation. Handles the complete
   # OAuth flow including authorization, token management, and identity verification.

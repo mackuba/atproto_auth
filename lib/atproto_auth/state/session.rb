@@ -2,7 +2,6 @@
 
 require 'monitor'
 require 'securerandom'
-require 'time'
 
 module AuthProto
   module State

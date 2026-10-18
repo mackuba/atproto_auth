@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'uri'
+
 module AuthProto
   module ServerMetadata
     # The `OriginUrl` class provides validation logic for URLs that must conform

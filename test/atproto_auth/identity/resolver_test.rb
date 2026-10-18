@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require 'json'
+require 'resolv'
+
 require_relative '../../test_helper'
 
 describe AuthProto::Identity::Resolver do

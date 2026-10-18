@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require 'json'
+require 'time'
+
 module AuthProto
   module Serialization
     class Error < AuthProto::Error; end

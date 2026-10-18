@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+require 'base64'
+require 'openssl'
+require 'securerandom'
+
 require_relative '../test_helper'
 
 describe AuthProto::Encryption do
