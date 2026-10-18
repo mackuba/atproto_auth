@@ -1,38 +1,23 @@
 module AuthProto
   module DPoP
     class Client
-      @key_manager: untyped
-
-      @nonce_manager: untyped
-
-      @proof_generator: untyped
-
       class Error < AuthProto::Error
       end
 
-      attr_reader key_manager: untyped
+      attr_reader key_manager: KeyManager
+      attr_reader proof_generator: ProofGenerator
+      attr_reader nonce_manager: NonceManager
 
-      attr_reader proof_generator: untyped
-
-      attr_reader nonce_manager: untyped
-
-      def initialize: (?key_manager: untyped?, ?nonce_ttl: untyped?) -> void
-
-      def generate_proof: (http_method: untyped, http_uri: untyped, ?access_token: untyped?) -> untyped
-
-      def process_response: (untyped response_headers, untyped server_url) -> untyped
-
-      def request_headers: (untyped proof) -> { "DPoP" => untyped }
-
-      def public_key: () -> untyped
-
-      def export_key: (?include_private: bool) -> untyped
+      def initialize: (?key_manager: KeyManager?, ?nonce_ttl: Integer?) -> void
+      def generate_proof: (http_method: String, http_uri: String, ?access_token: String?, ?nonce: String?) -> JOSE::SignedBinary
+      def process_response: (Hash[String, String]? response_headers, String server_url) -> void
+      def request_headers: (String proof) -> { "DPoP" => String }
+      def public_key: () -> json_object
+      def export_key: (?include_private: bool) -> JOSE::Map
 
       private
-
-      def extract_nonce: (untyped headers) -> untyped
-
-      def origin_for_uri: (untyped uri) -> untyped
+      def extract_nonce: (Hash[String | Symbol, String] headers) -> String?
+      def origin_for_uri: (URI::HTTP uri) -> String
     end
   end
 end

@@ -1,17 +1,22 @@
 interface _HTTPClient
-  def get: (String, ?Hash[Symbol, untyped]) -> { status: Integer, body: String, headers: Hash[String, String] }
-  def post: (String, ?Hash[Symbol, untyped]) -> { status: Integer, body: String, headers: Hash[String, String] }
-  def put: (String, ?Hash[Symbol, untyped]) -> { status: Integer, body: String, headers: Hash[String, String] }
-  def delete: (String, ?Hash[Symbol, untyped]) -> { status: Integer, body: String, headers: Hash[String, String] }
+  def get: (String url, ?Hash[String, String] headers) -> AuthProto::http_response
+  def post: (String url, ?body: AuthProto::http_body, ?headers: Hash[String, String]) -> AuthProto::http_response
 end
 
 module AuthProto
+  type json_object = Hash[String, untyped]
+  type http_body = String | Hash[untyped, untyped] | nil
+  type http_response = { status: Integer, headers: Hash[String, String], body: String? }
+  type token_info = { access_token: String, token_type: String, expires_in: Integer, refresh_token: String?, scope: String }
+  type refreshed_tokens = { access_token: String, token_type: String, expires_in: Integer, refresh_token: String?, scope: String, session_id: String }
+  type callback_result = { access_token: String, token_type: String, expires_in: Integer, refresh_token: String?, scope: String, session_id: String, did: String }
+  type authorization_result = { url: String, session_id: String }
+
   class Error < StandardError
   end
 
-  class OAuthError
+  class OAuthError < Error
     attr_reader error_code: String
-
     def initialize: (String message, String error_code) -> void
   end
 
@@ -23,17 +28,27 @@ module AuthProto
     def initialize: (String message) -> void
   end
 
+  class ConfigurationError < Error
+  end
+
   class Configuration
     attr_accessor default_token_lifetime: Integer
     attr_accessor dpop_nonce_lifetime: Integer
+    attr_accessor encryption: untyped
     attr_accessor http_client: _HTTPClient?
-
+    attr_accessor logger: Logger
+    attr_accessor storage: Storage::Interface
     def initialize: () -> void
+    def validate!: () -> true
+
+    private
+    def validate_storage!: () -> void
+    def validate_http_client!: () -> void
   end
 
   attr_writer self.configuration: Configuration
-
   def self.configuration: () -> Configuration
-
   def self.configure: () { (Configuration) -> untyped } -> Configuration
+  def self.storage: () -> Storage::Interface
+  def self.reset_configuration!: () -> Configuration
 end

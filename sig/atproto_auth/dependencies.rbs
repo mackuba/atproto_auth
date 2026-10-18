@@ -1,0 +1,19 @@
+# Minimal nominal types for the JOSE objects exposed by AuthProto's API.
+# JOSE currently ships no RBS; this is not a signature for its complete API.
+module JOSE
+  class Map
+    def []: (String key) -> untyped
+    def to_h: () -> Hash[String, untyped]
+  end
+
+  class SignedBinary < String
+  end
+
+  class JWK
+    attr_accessor fields: Map
+    def self.from_map: (Hash[String, untyped] | Map jwk, ?untyped modules, ?untyped key) -> JWK
+    def self.generate_key: (untyped params) -> JWK
+    def to_map: (?untyped key, ?untyped jwe) -> Map
+    def to_public: () -> JWK
+  end
+end

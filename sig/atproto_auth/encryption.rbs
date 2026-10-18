@@ -1,0 +1,42 @@
+module AuthProto
+  module Encryption
+    type envelope = { version: Integer, iv: String, data: String, tag: String }
+
+    class Error < AuthProto::Error
+    end
+    class ConfigurationError < Error
+    end
+    class EncryptionError < Error
+    end
+    class DecryptionError < Error
+    end
+
+    module HKDF
+      def self.derive: (_ToS secret, salt: String, info: String, length: Integer) -> String
+    end
+
+    class Service
+      CIPHER: String
+      VERSION: Integer
+      def initialize: () -> void
+      def encrypt: (_ToS data, context: String) -> envelope
+      def decrypt: (envelope encrypted, context: String) -> String
+
+      private
+      def validate_encryption_inputs!: (untyped data, untyped context) -> void
+      def validate_decryption_inputs!: (untyped encrypted, untyped context) -> void
+      def validate_encrypted_data!: (untyped encrypted) -> void
+    end
+
+    class KeyProvider
+      EPHEMERAL_KEY_MUTEX: Mutex
+      def self.ephemeral_master_key: () -> String
+      def initialize: () -> void
+      def key_for_context: (String context) -> String
+
+      private
+      def load_master_key: () -> String
+      def salt_for_context: (String context) -> String
+    end
+  end
+end

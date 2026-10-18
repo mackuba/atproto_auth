@@ -1,0 +1,11 @@
+module AuthProto
+  module Storage
+    # Only the Redis client operations required by the optional adapter.
+    interface _RedisClient
+      def set: (String key, untyped value, ?ex: Integer?, ?nx: bool) -> String?
+      def get: (String key) -> String?
+      def del: (*String keys) -> Integer
+      def exists?: (String key) -> bool
+    end
+  end
+end

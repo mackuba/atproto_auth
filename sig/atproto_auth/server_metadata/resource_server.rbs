@@ -19,9 +19,9 @@ module AuthProto
 
       def validate_server_url_format: (String server_url) -> void
 
-      def self.fetch_metadata: (String url) -> Hash[Symbol, String]
+      private def self.fetch_metadata: (String url) -> http_response
 
-      def self.parse_metadata: (String body) -> Hash[String, untyped]
+      private def self.parse_metadata: (String body) -> Hash[String, untyped]
     end
   end
 end

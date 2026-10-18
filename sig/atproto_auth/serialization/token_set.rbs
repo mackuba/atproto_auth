@@ -1,0 +1,14 @@
+module AuthProto
+  module Serialization
+    class TokenSet < Base[State::TokenSet]
+      def self.serialize: (State::TokenSet obj) -> String
+      def self.deserialize: (String data) -> State::TokenSet
+      def type_identifier: () -> String
+
+      private
+      def validate_object!: (State::TokenSet obj) -> void
+      def serialize_data: (State::TokenSet obj) -> data_hash
+      def deserialize_data: (json_object data) -> State::TokenSet
+    end
+  end
+end

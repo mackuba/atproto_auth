@@ -35,6 +35,8 @@ module AuthProto
       # @raise [InvalidAuthorizationServer] if metadata is invalid
       def self.from_issuer: (String issuer) -> AuthorizationServer
 
+      def to_h: () -> Hash[Symbol, untyped]
+
       private
 
       def validate_and_set_metadata!: (Hash[String, untyped] metadata) -> void
@@ -59,11 +61,11 @@ module AuthProto
 
       def validate_boolean_field!: (Hash[String, untyped] metadata, String field, bool required_value) -> void
 
-      def self.fetch_metadata: (String issuer) -> Hash[Symbol, String]
+      private def self.fetch_metadata: (String issuer) -> http_response
 
-      def self.parse_metadata: (String body) -> Hash[String, untyped]
+      private def self.parse_metadata: (String body) -> Hash[String, untyped]
 
-      def self.validate_issuer!: (String metadata_issuer, String request_issuer) -> void
+      private def self.validate_issuer!: (String metadata_issuer, String request_issuer) -> void
     end
   end
 end

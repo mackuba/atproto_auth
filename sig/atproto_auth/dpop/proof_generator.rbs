@@ -16,7 +16,7 @@ module AuthProto
           ?nonce: String?,
           ?access_token: String?,
           ?ath: bool?
-        ) -> String
+        ) -> JOSE::SignedBinary
 
       private
 
@@ -27,10 +27,10 @@ module AuthProto
       def build_payload: (
           http_method: String,
           http_uri: String,
-          nonce: String?,
-          access_token: String?,
-          include_ath: bool
-        ) -> Hash[Symbol, untyped]
+          ?nonce: String?,
+          ?access_token: String?,
+          ?include_ath: bool?
+        ) -> Hash[String, untyped]
 
       def normalize_uri: (String uri) -> String
 

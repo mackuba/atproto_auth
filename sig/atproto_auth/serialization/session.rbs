@@ -1,0 +1,19 @@
+module AuthProto
+  module Serialization
+    class Session < Base[State::Session]
+      def self.serialize: (State::Session obj) -> String
+      def self.deserialize: (String data) -> State::Session
+      def type_identifier: () -> String
+
+      private
+      def validate_object!: (State::Session obj) -> void
+      def serialize_data: (State::Session obj) -> data_hash
+      def deserialize_data: (json_object data) -> State::Session
+
+      def serialize_token_set: (State::TokenSet? tokens) -> String?
+      def deserialize_token_set: (String? data) -> State::TokenSet?
+      def serialize_auth_server: (ServerMetadata::AuthorizationServer? server) -> Hash[Symbol, untyped]?
+      def deserialize_auth_server: (json_object? data) -> ServerMetadata::AuthorizationServer?
+    end
+  end
+end

@@ -15,12 +15,12 @@ module AuthProto
       @client_assertion: String?
 
       class Configuration
-        attr_accessor client_id: String
-        attr_accessor redirect_uri: String
-        attr_accessor code_challenge: String
-        attr_accessor code_challenge_method: String
-        attr_accessor state: String
-        attr_accessor scope: String
+        attr_accessor client_id: String?
+        attr_accessor redirect_uri: String?
+        attr_accessor code_challenge: String?
+        attr_accessor code_challenge_method: String?
+        attr_accessor state: String?
+        attr_accessor scope: String?
         attr_accessor login_hint: String?
         attr_accessor nonce: String?
         attr_accessor dpop_proof: String?
@@ -41,7 +41,7 @@ module AuthProto
       attr_reader client_assertion_type: String?
       attr_reader client_assertion: String?
 
-      def self.build: () { (Configuration) -> void } -> Request
+      def self.build: () { (Configuration) -> untyped } -> Request
 
       def initialize: (Configuration config) -> void
 

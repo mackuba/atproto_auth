@@ -1,0 +1,20 @@
+module AuthProto
+  module Storage
+    class StorageError < AuthProto::Error
+    end
+    class LockError < StorageError
+    end
+
+    class Interface
+      def set: (String key, untyped value, ?ttl: Integer?) -> bool
+      def get: (String key) -> untyped
+      def delete: (String key) -> bool
+      def exists?: (String key) -> bool
+      def with_lock: [T] (String key, ?ttl: Integer) { () -> T } -> T
+
+      # Protected in Ruby; RBS exposes protected methods as public.
+      def validate_key!: (String key) -> void
+      def validate_ttl!: (Integer? ttl) -> void
+    end
+  end
+end

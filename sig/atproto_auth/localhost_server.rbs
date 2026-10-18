@@ -1,0 +1,30 @@
+module AuthProto
+  class LocalhostServer
+    type metadata = Hash[String | Symbol, untyped]
+    type callback_params = { code: String, state: String, iss: String }
+
+    MAX_HEADER_BYTES: Integer
+    REQUEST_TIMEOUT: Integer
+    LOOPBACK_RANGES: Array[IPAddr]
+
+    class CallbackError < StandardError
+      attr_reader error_code: String
+      attr_reader error_description: String?
+      def initialize: (String error_code, String? error_description) -> void
+    end
+    class InvalidRequest < StandardError
+    end
+
+    def self.start: [T] (metadata metadata, ?timeout: Numeric) { (callback_params) -> T } -> T
+    def initialize: (metadata metadata) -> void
+    def start: [T] (?timeout: Numeric) { (callback_params) -> T } -> T
+
+    private
+    def loopback_host?: (String? host) -> bool
+    def handle_connection: [T] (TCPSocket socket) { (callback_params) -> T } -> [bool, T?]
+    def handle_request: (TCPSocket socket) -> Hash[String, String]?
+    def read_request: (TCPSocket socket) -> [String, String]
+    def extract_callback_params: (URI::Generic uri) -> Hash[String, String]
+    def respond: (TCPSocket socket, Integer status, String reason, String body) -> void
+  end
+end

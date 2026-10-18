@@ -1,0 +1,36 @@
+module AuthProto
+  module Serialization
+    type data_hash = Hash[String | Symbol, untyped]
+
+    class Error < AuthProto::Error
+    end
+    class VersionError < Error
+    end
+    class TypeMismatchError < Error
+    end
+    class ValidationError < Error
+    end
+
+    class Base[T]
+      CURRENT_VERSION: Integer
+      SENSITIVE_FIELDS: Array[String]
+      def self.serialize: (untyped obj) -> String
+      def self.deserialize: (String data) -> untyped
+      def initialize: () -> void
+      def serialize: (T obj) -> String
+      def deserialize: (String data) -> T
+
+      private
+      def encrypt_sensitive_fields!: (data_hash data, ?path: Array[String | Symbol]) -> void
+      def decrypt_sensitive_fields!: (data_hash data, ?path: Array[String | Symbol]) -> void
+      def sensitive_field?: (String | Symbol field) -> bool
+      def type_identifier: () -> String
+      def serialize_data: (T obj) -> data_hash
+      def deserialize_data: (json_object data) -> T
+      def validate_object!: (T obj) -> void
+      def parse_json: (String data) -> untyped
+      def validate_serialized_data!: (untyped data) -> void
+      def deserialize_version: (json_object data) -> T
+    end
+  end
+end

@@ -2,10 +2,10 @@ module AuthProto
   module ServerMetadata
     class OriginURL
       @url: String
-      @uri: URI
+      @uri: URI::Generic
 
       attr_reader url: String
-      attr_reader uri: URI
+      attr_reader uri: URI::Generic
 
       def initialize: (String url) -> void
 
@@ -13,9 +13,9 @@ module AuthProto
 
       private
 
-      def uses_https_scheme?: () -> bool
-      def has_root_path?: () -> bool
-      def has_explicit_port?: () -> bool
+      def https_scheme?: () -> bool
+      def root_path?: () -> bool
+      def explicit_port?: () -> bool
     end
   end
 end

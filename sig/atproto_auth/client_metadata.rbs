@@ -80,16 +80,26 @@ module AuthProto
 
     def validate_https_uri: (String? uri) -> String?
 
+    def validate_jwks!: (Hash[String, untyped] jwks) -> void
+
     def validate_auth_methods!: (Hash[String, untyped] metadata) -> void
 
     def validate_dpop!: (Hash[String, untyped] metadata) -> void
 
-    def self.validate_url!: (String url) -> void
+    private def self.validate_url!: (String url) -> void
 
-    def self.fetch_metadata: (String url) -> Hash[Symbol, untyped]
+    private def self.fetch_metadata: (String url) -> http_response
 
-    def self.parse_metadata: (String body) -> Hash[String, untyped]
+    private def self.parse_metadata: (String body) -> Hash[String, untyped]
 
-    def self.validate_client_id!: (String metadata_client_id, String url) -> void
+    private def self.validate_client_id!: (String metadata_client_id, String url) -> void
+  end
+end
+
+module AuthProto
+  module ApplicationType
+    WEB: String
+    NATIVE: String
+    ALL: Array[String]
   end
 end

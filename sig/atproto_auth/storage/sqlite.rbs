@@ -1,0 +1,26 @@
+module AuthProto
+  module Storage
+    class SQLite < Interface
+      class SQLiteError < StorageError
+      end
+
+      DEFAULT_BUSY_TIMEOUT: Integer
+
+      def initialize: (path: String, ?busy_timeout: Integer) -> void
+      def set: (String key, String | Numeric | nil value, ?ttl: Integer?) -> true
+      def get: (String key) -> (String | Numeric | nil)
+      def delete: (String key) -> bool
+      def exists?: (String key) -> bool
+      def with_lock: [T] (String key, ?ttl: Integer) { () -> T } -> T
+      def close: () -> void
+
+      private
+      def configure_database: () -> void
+      def create_schema: () -> void
+      def acquire_lock: (String key, ttl: Integer) -> String?
+      def release_lock: (String key, String owner) -> bool
+      def delete_expired_value: (String key, Float now) -> void
+      def current_time: () -> Float
+    end
+  end
+end

@@ -1,0 +1,22 @@
+module AuthProto
+  module Storage
+    class Memory < Interface
+      def initialize: () -> void
+      def set: (String key, untyped value, ?ttl: Integer?) -> true
+      def get: (String key) -> untyped
+      def delete: (String key) -> true
+      def exists?: (String key) -> bool
+      def with_lock: [T] (String key, ?ttl: Integer) { () -> T } -> T
+      def clear: () -> void
+
+      private
+      def acquire_lock: (String key, ttl: Integer) -> bool
+      def release_lock: (String key) -> true
+      def expired?: (String key) -> bool
+      def lock_expired?: (String lock_key) -> bool
+      def set_expiration: (String key, Integer ttl) -> Integer
+      def cleanup_expired: () -> void
+      def start_cleanup_thread: () -> Thread
+    end
+  end
+end

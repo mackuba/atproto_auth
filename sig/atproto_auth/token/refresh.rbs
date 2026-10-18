@@ -1,0 +1,47 @@
+module AuthProto
+  module Token
+    class Error < AuthProto::Error
+      attr_reader token_type: String
+      attr_reader error_code: String
+      attr_reader retry_possible: bool
+      def initialize: (String message, token_type: String, error_code: String, ?retry_possible: bool) -> void
+    end
+    class ExpiredTokenError < Error
+      def initialize: (token_type: String) -> void
+    end
+    class InvalidTokenError < Error
+      def initialize: (token_type: String) -> void
+    end
+    class RefreshError < Error
+      def initialize: (String message, ?retry_possible: bool) -> void
+    end
+
+    class Refresh
+      include MonitorMixin
+      MAX_RETRIES: Integer
+      BASE_DELAY: Integer
+      MAX_DELAY: Integer
+      attr_reader session: State::Session
+      attr_reader dpop_client: DPoP::Client
+      attr_reader auth_server: ServerMetadata::AuthorizationServer
+      attr_reader client_metadata: ClientMetadata
+
+      def initialize: (session: State::Session, dpop_client: DPoP::Client, auth_server: ServerMetadata::AuthorizationServer, client_metadata: ClientMetadata) -> void
+      def perform!: () -> State::TokenSet
+
+      private
+      def with_retries: [T] () { () -> T } -> T
+      def calculate_delay: () -> Float
+      def request_token_refresh: () -> State::TokenSet
+      def make_token_request: (State::Session session) -> http_response
+      def requires_dpop_nonce?: (http_response response) -> bool
+      def extract_dpop_nonce: (http_response response) -> String
+      def add_client_authentication!: (Hash[Symbol, untyped] body) -> void
+      def handle_refresh_response: (http_response response) -> State::TokenSet
+      def process_successful_response: (http_response response) -> State::TokenSet
+      def handle_400_response: (http_response response) -> bot
+      def handle_rate_limit_response: (http_response response) -> bot
+      def validate_refresh_response!: (json_object data) -> void
+    end
+  end
+end

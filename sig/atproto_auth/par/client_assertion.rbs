@@ -1,0 +1,10 @@
+module AuthProto
+  module PAR
+    class ClientAssertion
+      class Error < AuthProto::Error
+      end
+      def initialize: (client_id: String, signing_key: JOSE::JWK) -> void
+      def generate_jwt: (audience: String, ?lifetime: Integer) -> String
+    end
+  end
+end

@@ -1,0 +1,19 @@
+module AuthProto
+  module Storage
+    class Redis < Interface
+      class RedisError < StorageError
+      end
+
+      def initialize: (?redis_client: _RedisClient?) -> void
+      def set: (String key, untyped value, ?ttl: Integer?) -> true
+      def get: (String key) -> String?
+      def delete: (String key) -> bool
+      def exists?: (String key) -> bool
+      def with_lock: [T] (String key, ?ttl: Integer) { () -> T } -> T
+
+      private
+      def acquire_lock: (String key, ttl: Integer) -> String?
+      def release_lock: (String key) -> bool
+    end
+  end
+end
