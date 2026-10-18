@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "securerandom"
-require "time"
+require 'securerandom'
+require 'time'
 
 module AuthProto
   module DPoP

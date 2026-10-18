@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "net/http"
-require "uri"
-require "ipaddr"
-require "resolv"
+require 'ipaddr'
+require 'net/http'
+require 'resolv'
+require 'uri'
 
 module AuthProto
   # A secure HTTP client for making OAuth-related requests.

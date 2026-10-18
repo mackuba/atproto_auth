@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 begin
-  require "redis"
+  require 'redis'
 rescue LoadError
   warn "Error: missing Redis adapter. Add this to your Gemfile:"
   warn "  gem 'redis', '~> 5.4'"

@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "fileutils"
-require "tmpdir"
+require 'fileutils'
+require 'tmpdir'
 
-require_relative "../../test_helper"
-require_relative "storage_examples"
+require_relative '../../test_helper'
+require_relative 'storage_examples'
 
 describe AuthProto::Storage::SQLite do
   let(:temporary_directory) { Dir.mktmpdir("atproto-auth-sqlite-test") }

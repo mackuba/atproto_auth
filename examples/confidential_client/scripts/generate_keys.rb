@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "jose"
+require 'jose'
 
 # Generate a new EC key using P-256 curve
 keypair = JOSE::JWK.generate_key([:ec, "P-256"])
@@ -9,7 +9,7 @@ keypair = JOSE::JWK.generate_key([:ec, "P-256"])
 jwk = keypair.to_map.to_h
 
 # Pretty print the JWK to stdout
-require "json"
+require 'json'
 puts JSON.pretty_generate({
                             keys: [jwk]
                           })

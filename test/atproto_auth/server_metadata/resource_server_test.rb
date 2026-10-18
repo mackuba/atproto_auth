@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../../test_helper"
+require_relative '../../test_helper'
 
 describe AuthProto::ServerMetadata::ResourceServer do
   let(:valid_metadata) { { "authorization_servers" => ["https://auth.example.com"] } }

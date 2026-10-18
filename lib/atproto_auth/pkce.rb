@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "securerandom"
-require "base64"
-require "openssl"
+require 'base64'
+require 'openssl'
+require 'securerandom'
 
 module AuthProto
   # Implementation of Proof Key for Code Exchange (PKCE) for OAuth 2.0 / AT Protocol

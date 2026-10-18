@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
 $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
-require "atproto_auth"
+require 'atproto_auth'
 
-require "minitest/autorun"
-require "minitest/mock"
-require "minitest/reporters"
-require "mocha/minitest"
-require "webmock/minitest"
+require 'minitest/autorun'
+require 'minitest/mock'
+require 'minitest/reporters'
+require 'mocha/minitest'
+require 'webmock/minitest'
 
 # Set a consistent encryption key to use across all tests
 ENV["ATPROTO_MASTER_KEY"] = Base64.strict_encode64("0" * 32)

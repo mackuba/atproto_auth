@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../../test_helper"
+require_relative '../../test_helper'
 
 describe AuthProto::State::SessionManager do
   let(:client_id) { "test_client_id" }

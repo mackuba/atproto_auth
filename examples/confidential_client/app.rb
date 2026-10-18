@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require "cgi"
-require "sinatra/base"
-require "sinatra/reloader"
-require "atproto_auth"
-require "faraday"
-require "json"
-require "dotenv/load"
+require 'atproto_auth'
+require 'cgi'
+require 'dotenv/load'
+require 'faraday'
+require 'json'
+require 'sinatra/base'
+require 'sinatra/reloader'
 
 # Main app entry point
 class ExampleApp < Sinatra::Base

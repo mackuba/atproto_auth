@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../../test_helper"
+require_relative '../../test_helper'
 
 describe AuthProto::DPoP::NonceManager do
   let(:server_url) { "https://example.com" }

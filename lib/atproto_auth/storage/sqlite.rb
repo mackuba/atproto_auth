@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "fileutils"
-require "securerandom"
+require 'fileutils'
+require 'securerandom'
 
 begin
-  require "sqlite3"
+  require 'sqlite3'
 rescue LoadError
   warn "Error: missing SQLite adapter. Add this to your Gemfile:"
   warn "  gem 'sqlite3', '~> 2.9'"

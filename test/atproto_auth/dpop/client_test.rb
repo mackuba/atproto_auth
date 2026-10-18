@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../../test_helper"
+require_relative '../../test_helper'
 
 describe AuthProto::DPoP::Client do
   let(:mock_key_manager) do

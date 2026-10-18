@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../../test_helper"
+require_relative '../../test_helper'
 
 describe AuthProto::DPoP::KeyManager do
   let(:valid_keypair) { JOSE::JWK.generate_key([:ec, "P-256"]) }

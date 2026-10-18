@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "../test_helper"
-require "atproto_auth/minisky_oauth"
+require_relative '../test_helper'
+require 'atproto_auth/minisky_oauth'
 
 describe MiniskyOAuth do
   let(:host) { "https://pds.example.com" }

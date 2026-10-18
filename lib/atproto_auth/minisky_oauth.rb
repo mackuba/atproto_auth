@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "atproto_auth"
-require "minisky"
+require 'atproto_auth'
+require 'minisky'
 
 # Experimental Minisky client backed by an AuthProto session.
 # Requiring atproto_auth alone does not load Minisky or this integration.

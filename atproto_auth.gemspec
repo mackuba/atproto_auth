@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "lib/atproto_auth/version"
+require_relative 'lib/atproto_auth/version'
 
 Gem::Specification.new do |spec|
   spec.name = "atproto_auth"

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "../../test_helper"
-require_relative "storage_examples"
+require_relative '../../test_helper'
+require_relative 'storage_examples'
 
 describe AuthProto::Storage::Redis do
   let(:redis) { Redis.new(url: ENV.fetch("REDIS_URL")) }

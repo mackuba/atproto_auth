@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "securerandom"
-require "time"
-require "monitor"
+require 'monitor'
+require 'securerandom'
+require 'time'
 
 module AuthProto
   module State

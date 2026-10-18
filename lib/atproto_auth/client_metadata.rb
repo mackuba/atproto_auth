@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "uri"
-require "json"
+require 'json'
+require 'uri'
 
 module AuthProto
   module ApplicationType

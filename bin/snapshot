@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require "find"
-require "pathname"
+require 'find'
+require 'pathname'
 
 # SnapshotGenerator creates a comprehensive text-based representation of a project's
 # structure and contents. It generates a single file that includes:
