@@ -49,7 +49,7 @@ describe MiniskyOAuth do
   before do
     @previous_configuration = AuthProto.configuration
     AuthProto.reset_configuration!
-    AuthProto.configuration.http_client = AuthProto::HttpClient.new
+    AuthProto.configuration.http_client = AuthProto::HTTPClient.new
   end
 
   after do
@@ -76,7 +76,7 @@ describe MiniskyOAuth do
   end
 
   def stub_refresh
-    # HttpClient validates DNS before the mocked HTTP request.
+    # HTTPClient validates DNS before the mocked HTTP request.
     Resolv::DNS.any_instance.stubs(:getaddresses).returns([Resolv::IPv4.create("93.184.216.34")])
     stub_request(:post, "https://auth.example.com/token").with do |request|
       URI.decode_www_form(request.body).to_h["grant_type"] == "refresh_token"

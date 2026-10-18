@@ -12,7 +12,7 @@ describe AuthProto::Identity::Resolver do
   before do
     Resolv::DNS.any_instance.stubs(:getaddresses).returns([Resolv::IPv4.create("93.184.216.34")])
     AuthProto.configure do |configuration|
-      configuration.http_client = AuthProto::HttpClient.new
+      configuration.http_client = AuthProto::HTTPClient.new
     end
   end
 

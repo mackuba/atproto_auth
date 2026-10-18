@@ -4,8 +4,8 @@ require 'net/http'
 require 'openssl'
 require 'resolv'
 
-describe AuthProto::HttpClient do
-  let(:client) { AuthProto::HttpClient.new }
+describe AuthProto::HTTPClient do
+  let(:client) { AuthProto::HTTPClient.new }
   let(:sample_url) { "https://example.com/resource" }
   let(:private_ip) { "192.168.1.1" }
 
@@ -17,19 +17,19 @@ describe AuthProto::HttpClient do
     it "should reject non-HTTPS URLs" do
       expect {
         client.get("http://example.com")
-      }.to raise_error(AuthProto::HttpClient::SSRFError)
+      }.to raise_error(AuthProto::HTTPClient::SSRFError)
     end
 
     it "should reject URLs with fragments" do
       expect {
         client.get("https://example.com#fragment")
-      }.to raise_error(AuthProto::HttpClient::SSRFError)
+      }.to raise_error(AuthProto::HTTPClient::SSRFError)
     end
 
     it "should reject URLs without hosts" do
       expect {
         client.get("https:///resource")
-      }.to raise_error(AuthProto::HttpClient::SSRFError)
+      }.to raise_error(AuthProto::HTTPClient::SSRFError)
     end
 
     it "should reject private network IPs" do
@@ -38,12 +38,12 @@ describe AuthProto::HttpClient do
 
       expect {
         client.get("https://#{private_ip}/")
-      }.to raise_error(AuthProto::HttpClient::SSRFError)
+      }.to raise_error(AuthProto::HTTPClient::SSRFError)
     end
 
     it "should reject loopback and IPv4-mapped IPv6 addresses" do
       %w[127.0.0.1 127.10.20.30 [::1] [::ffff:127.0.0.1]].each do |host|
-        expect { client.get("https://#{host}/") }.to raise_error(AuthProto::HttpClient::SSRFError)
+        expect { client.get("https://#{host}/") }.to raise_error(AuthProto::HTTPClient::SSRFError)
       end
     end
 
@@ -51,12 +51,12 @@ describe AuthProto::HttpClient do
       Resolv::DNS.any_instance.stubs(:getaddresses).returns([
                                                               Resolv::IPv4.create("93.184.216.34"), Resolv::IPv6.create("::1")
                                                             ])
-      expect { client.get(sample_url) }.to raise_error(AuthProto::HttpClient::SSRFError)
+      expect { client.get(sample_url) }.to raise_error(AuthProto::HTTPClient::SSRFError)
     end
 
     it "should reject hostnames without resolved addresses" do
       Resolv::DNS.any_instance.stubs(:getaddresses).returns([])
-      expect { client.get(sample_url) }.to raise_error(AuthProto::HttpClient::SSRFError)
+      expect { client.get(sample_url) }.to raise_error(AuthProto::HTTPClient::SSRFError)
     end
   end
 
@@ -110,18 +110,18 @@ describe AuthProto::HttpClient do
 
       expect {
         client.get(sample_url)
-      }.to raise_error(AuthProto::HttpClient::HttpError)
+      }.to raise_error(AuthProto::HTTPClient::HTTPError)
     end
 
     it "should reject oversized responses" do
-      large_response = "x" * (AuthProto::HttpClient::MAX_RESPONSE_SIZE + 1)
+      large_response = "x" * (AuthProto::HTTPClient::MAX_RESPONSE_SIZE + 1)
 
       stub_request(:get, sample_url)
         .to_return(status: 200, body: large_response)
 
       expect {
         client.get(sample_url)
-      }.to raise_error(AuthProto::HttpClient::HttpError)
+      }.to raise_error(AuthProto::HTTPClient::HTTPError)
     end
   end
 
@@ -188,27 +188,27 @@ describe AuthProto::HttpClient do
   end
 
   describe "timeout handling" do
-    let(:client) { AuthProto::HttpClient.new(timeout: 1) }
+    let(:client) { AuthProto::HTTPClient.new(timeout: 1) }
 
     it "should handle read timeouts" do
       stub_request(:get, sample_url).to_timeout
 
       expect {
         client.get(sample_url)
-      }.to raise_error(AuthProto::HttpClient::HttpError)
+      }.to raise_error(AuthProto::HTTPClient::HTTPError)
     end
   end
 
   describe "SSL verification" do
     it "should verify SSL certificates by default" do
-      client = AuthProto::HttpClient.new
+      client = AuthProto::HTTPClient.new
       http = Net::HTTP.new("example.com")
       client.send(:configure_http_client!, http)
       http.verify_mode.should == OpenSSL::SSL::VERIFY_PEER
     end
 
     it "should be able to disable SSL verification" do
-      client = AuthProto::HttpClient.new(verify_ssl: false)
+      client = AuthProto::HTTPClient.new(verify_ssl: false)
       http = Net::HTTP.new("example.com")
       client.send(:configure_http_client!, http)
       http.verify_mode.should == OpenSSL::SSL::VERIFY_NONE

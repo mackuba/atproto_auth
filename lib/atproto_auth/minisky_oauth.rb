@@ -44,7 +44,7 @@ class MiniskyOAuth
   #
   # @raise [AuthProto::InvalidClientMetadata] if metadata is invalid or unavailable
   # @raise [AuthProto::Error] if OAuth client or DPoP initialization fails
-  # @raise [AuthProto::HttpClient::HttpError, AuthProto::HttpClient::SSRFError] if fetching metadata fails
+  # @raise [AuthProto::HTTPClient::HTTPError, AuthProto::HTTPClient::SSRFError] if fetching metadata fails
   # @see AuthProto::Client#initialize
   #
   def initialize(host, client_id:, redirect_uri:, metadata: nil, dpop_key: nil)

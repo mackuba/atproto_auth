@@ -9,7 +9,7 @@ module AuthProto
   # Allows private/loopback destinations; HTTPS certificate verification is kept.
   #
 
-  class InsecureHttpClient < HttpClient
+  class InsecureHTTPClient < HTTPClient
 
     # HTTP and HTTPS schemes accepted for development requests.
     # @return [Array<String>]

@@ -20,7 +20,7 @@ module AuthProto
   # The module includes three main classes:
   # - {ResourceServer} - Handles PDS metadata validation and authorization server discovery
   # - {AuthorizationServer} - Handles authorization server metadata validation
-  # - {OriginUrl} - Validates URLs conform to AT Protocol's "simple origin URL" requirements
+  # - {OriginURL} - Validates URLs conform to AT Protocol's "simple origin URL" requirements
   #
 
   module ServerMetadata

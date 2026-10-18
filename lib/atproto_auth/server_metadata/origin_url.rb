@@ -6,7 +6,7 @@ module AuthProto
   module ServerMetadata
 
     #
-    # The `OriginUrl` class provides validation logic for URLs that must conform
+    # The `OriginURL` class provides validation logic for URLs that must conform
     # to the AT Protocol OAuth "simple origin URL" requirements. These requirements
     # are common between Resource and Authorization Servers and ensure that the URL
     # is valid and secure for use in the protocol. This class validates that the URL:
@@ -20,7 +20,7 @@ module AuthProto
     # consistency between different server classes.
     #
 
-    class OriginUrl
+    class OriginURL
 
       # Original URL string supplied by the caller.
       # @return [String]

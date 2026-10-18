@@ -53,7 +53,7 @@ require 'atproto_auth'
 
 AuthProto.configure do |config|
   # Configure HTTP client settings
-  config.http_client = AuthProto::HttpClient.new(
+  config.http_client = AuthProto::HTTPClient.new(
     timeout: 10,
     verify_ssl: true
   )
@@ -78,16 +78,16 @@ resolution, metadata discovery and OAuth requests), explicitly select:
 
 ```ruby
 AuthProto.configure do |config|
-  config.http_client = AuthProto::InsecureHttpClient.new(timeout: 10)
+  config.http_client = AuthProto::InsecureHTTPClient.new(timeout: 10)
 end
 ```
 
-`InsecureHttpClient` accepts HTTP and HTTPS, including loopback and private-network
+`InsecureHTTPClient` accepts HTTP and HTTPS, including loopback and private-network
 destinations, and permits redirects between them. It disables the regular client's
 scheme/IP restrictions for development; HTTPS certificate verification stays enabled
 by default. Timeouts, response size limits and request headers are inherited.
 
-The regular `HttpClient` accepts HTTPS and rejects loopback/private addresses.
+The regular `HTTPClient` accepts HTTPS and rejects loopback/private addresses.
 Use it for remote OAuth servers, including when your application's callback is
 local: the browser, rather than this HTTP client, follows the callback redirect.
 

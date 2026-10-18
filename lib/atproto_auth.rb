@@ -95,7 +95,7 @@ module AuthProto
     # @raise [ConfigurationError] if the storage or HTTP client is invalid
     # @example Configure the default transport
     #   AuthProto.configure do |config|
-    #     config.http_client = AuthProto::HttpClient.new
+    #     config.http_client = AuthProto::HTTPClient.new
     #   end
     #
     def configure

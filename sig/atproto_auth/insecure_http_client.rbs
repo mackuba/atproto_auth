@@ -1,5 +1,5 @@
 module AuthProto
-  class InsecureHttpClient < HttpClient
+  class InsecureHTTPClient < HTTPClient
     ALLOWED_SCHEMES: ::Array[String]
 
     private

@@ -59,7 +59,7 @@ describe AuthProto::ServerMetadata::AuthorizationServer do
     end
 
     it "should raise an error if fetching metadata fails" do
-      AuthProto.configuration.http_client.stubs(:get).raises(AuthProto::HttpClient::HttpError.new("Network error",
+      AuthProto.configuration.http_client.stubs(:get).raises(AuthProto::HTTPClient::HTTPError.new("Network error",
                                                                                                       {}))
       expect {
         AuthProto::ServerMetadata::AuthorizationServer.from_issuer(issuer_url)

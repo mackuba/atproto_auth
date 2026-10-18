@@ -5,7 +5,7 @@ require 'json'
 describe AuthProto::Token::Refresh do
   before do
     AuthProto.configure do |configuration|
-      configuration.http_client = AuthProto::HttpClient.new
+      configuration.http_client = AuthProto::HTTPClient.new
     end
 
     client_metadata = AuthProto::ClientMetadata.new(

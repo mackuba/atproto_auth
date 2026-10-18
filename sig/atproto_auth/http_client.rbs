@@ -1,5 +1,5 @@
 module AuthProto
-  class HttpClient
+  class HTTPClient
     @timeout: Integer
 
     @verify_ssl: bool
@@ -17,7 +17,7 @@ module AuthProto
     class SSRFError < Error
     end
 
-    class HttpError < Error
+    class HTTPError < Error
       @response: ::Net::HTTPResponse?
 
       attr_reader response: ::Net::HTTPResponse?

@@ -75,7 +75,7 @@ module AuthProto
     # @raise [InvalidClientMetadata] if client metadata is invalid or unavailable
     # @raise [Error] if the redirect URI is not registered
     # @raise [DPoP::KeyManager::KeyError] if the DPoP key cannot be imported or generated
-    # @raise [HttpClient::HttpError, HttpClient::SSRFError] if fetching client metadata fails
+    # @raise [HTTPClient::HTTPError, HTTPClient::SSRFError] if fetching client metadata fails
     #
     def initialize(client_id:, redirect_uri:, metadata: nil, dpop_key: nil)
       @client_id = client_id
@@ -106,7 +106,7 @@ module AuthProto
     # @raise [PAR::Error] if the pushed authorization request fails
     # @raise [PAR::ClientAssertion::Error] if confidential-client signing fails
     # @raise [DPoP::Client::Error] if generating the PAR proof fails
-    # @raise [HttpClient::SSRFError] if server discovery rejects a destination
+    # @raise [HTTPClient::SSRFError] if server discovery rejects a destination
     # @raise [Storage::StorageError] if session storage or locking fails
     # @raise [Encryption::EncryptionError] if session serialization cannot encrypt secrets
     #
@@ -159,7 +159,7 @@ module AuthProto
     # @raise [CallbackError] if state is unknown or the issuer does not match the session
     # @raise [TokenError] if token exchange or response validation fails
     # @raise [DPoP::Client::Error, PAR::ClientAssertion::Error] if proof/assertion generation fails
-    # @raise [HttpClient::HttpError, HttpClient::SSRFError] if token transport fails
+    # @raise [HTTPClient::HTTPError, HTTPClient::SSRFError] if token transport fails
     # @raise [State::SessionError] if token subject conflicts with the session DID
     # @raise [ArgumentError] if returned token fields fail token-set validation
     # @raise [Storage::StorageError] if session storage or locking fails

@@ -5,8 +5,8 @@ require 'net/http'
 require 'openssl'
 require 'resolv'
 
-describe AuthProto::InsecureHttpClient do
-  let(:client) { AuthProto::InsecureHttpClient.new }
+describe AuthProto::InsecureHTTPClient do
+  let(:client) { AuthProto::InsecureHTTPClient.new }
 
   it "should support GET and POST over HTTP and HTTPS at public and local destinations" do
     urls = %w[
@@ -57,13 +57,13 @@ describe AuthProto::InsecureHttpClient do
 
   it "should still reject unsupported schemes, missing hosts and fragments" do
     %w[ftp://localhost/test file:///tmp/test https:///test http://localhost/test#fragment].each do |url|
-      expect { client.get(url) }.to raise_error(AuthProto::HttpClient::SSRFError)
+      expect { client.get(url) }.to raise_error(AuthProto::HTTPClient::SSRFError)
     end
   end
 
   it "should keep HTTPS certificate verification enabled and honor timeouts" do
     http = Net::HTTP.new("example.com")
-    configured = AuthProto::InsecureHttpClient.new(timeout: 3)
+    configured = AuthProto::InsecureHTTPClient.new(timeout: 3)
     configured.send(:configure_http_client!, http)
     http.use_ssl?.should be true
     http.verify_mode.should == OpenSSL::SSL::VERIFY_PEER
@@ -74,8 +74,8 @@ describe AuthProto::InsecureHttpClient do
   it "should retain response size limits" do
     url = "http://localhost:9292/test"
     stub_request(:get, url).to_return(status: 200, headers: {
-                                        "Content-Length" => (AuthProto::HttpClient::MAX_RESPONSE_SIZE + 1).to_s
+                                        "Content-Length" => (AuthProto::HTTPClient::MAX_RESPONSE_SIZE + 1).to_s
                                       })
-    expect { client.get(url) }.to raise_error(AuthProto::HttpClient::HttpError)
+    expect { client.get(url) }.to raise_error(AuthProto::HTTPClient::HTTPError)
   end
 end

@@ -117,7 +117,7 @@ module AuthProto
     # @param url [String] HTTPS metadata URL, or localhost URL for development
     # @return [ClientMetadata] validated metadata
     # @raise [InvalidClientMetadata] if metadata is missing, invalid/mismatched, not JSON, or transport isn't configured
-    # @raise [HttpClient::HttpError, HttpClient::SSRFError] if the transport rejects/fails the request
+    # @raise [HTTPClient::HTTPError, HTTPClient::SSRFError] if the transport rejects/fails the request
     # @raise [URI::InvalidURIError] if a URL cannot be parsed
     #
     def self.from_url(url)

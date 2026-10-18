@@ -35,7 +35,7 @@ module AuthProto
       # @param url [String] resource server/PDS base URL
       # @return [ResourceServer] validated resource server metadata
       # @raise [InvalidAuthorizationServer] if HTTP transport, JSON parsing or metadata validation fails
-      # @raise [HttpClient::SSRFError] if the transport rejects the initial destination
+      # @raise [HTTPClient::SSRFError] if the transport rejects the initial destination
       # @raise [URI::InvalidURIError] if the PDS or authorization server URL cannot be parsed
       #
       def self.from_url(url)
@@ -66,7 +66,7 @@ module AuthProto
       end
 
       def validate_server_url_format(server_url)
-        return if OriginUrl.new(server_url).valid?
+        return if OriginURL.new(server_url).valid?
 
         raise InvalidAuthorizationServer, "invalid authorization server URL format for #{server_url}"
       end
@@ -77,7 +77,7 @@ module AuthProto
         def fetch_metadata(url)
           metadata_url = URI.join(url, "/.well-known/oauth-protected-resource")
           AuthProto.configuration.http_client.get(metadata_url.to_s)
-        rescue HttpClient::HttpError => e
+        rescue HTTPClient::HTTPError => e
           raise InvalidAuthorizationServer, "Failed to fetch resource server metadata: #{e.message}"
         end
 

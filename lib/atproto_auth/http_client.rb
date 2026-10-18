@@ -13,7 +13,7 @@ module AuthProto
   # Implements protections against SSRF attacks and enforces security headers.
   #
 
-  class HttpClient
+  class HTTPClient
 
     # IPv4/IPv6 destinations rejected by the secure transport.
     # @return [Array<IPAddr>]
@@ -53,7 +53,7 @@ module AuthProto
     # Error raised when an HTTP request fails
     #
 
-    class HttpError < Error
+    class HTTPError < Error
 
       # Response associated with the failure, when retained by the transport.
       # @return [Net::HTTPResponse, nil]
@@ -103,7 +103,7 @@ module AuthProto
     # @param headers [Hash{String => String}] additional request headers; can override the default `Cache-Control` value
     # @return [Hash{Symbol => Integer, Hash{String => String}, String, nil}] `:status` (Integer), lowercase `:headers` (Hash), and `:body` (String or nil)
     # @raise [SSRFError] if initial scheme, host, fragment or resolved address is rejected
-    # @raise [HttpError] if transport, TLS, redirect validation or response size checks fail
+    # @raise [HTTPError] if transport, TLS, redirect validation or response size checks fail
     # @raise [URI::InvalidURIError] if the initial URL cannot be parsed
     #
     def get(url, headers = {})
@@ -133,7 +133,7 @@ module AuthProto
     # @param headers [Hash{String => String}] additional request headers; can override the default `Cache-Control` value
     # @return [Hash{Symbol => Integer, Hash{String => String}, String, nil}] `:status` (Integer), lowercase `:headers` (Hash), and `:body` (String or nil)
     # @raise [SSRFError] if initial scheme, host, fragment or resolved address is rejected
-    # @raise [HttpError] if transport, TLS, redirect validation or response size checks fail
+    # @raise [HTTPError] if transport, TLS, redirect validation or response size checks fail
     # @raise [URI::InvalidURIError] if the initial URL cannot be parsed
     #
     def post(url, body: nil, headers: {})
@@ -218,9 +218,9 @@ module AuthProto
         redirect_count: redirect_count
       )
     rescue Net::OpenTimeout, Net::ReadTimeout => e
-      raise HttpError.new("Request timeout: #{e.message}", nil)
+      raise HTTPError.new("Request timeout: #{e.message}", nil)
     rescue StandardError => e
-      raise HttpError.new("Request failed: #{e.message}", nil)
+      raise HTTPError.new("Request failed: #{e.message}", nil)
     end
 
     def make_post_request(uri, body, headers = {}, redirect_count = 0)
@@ -241,9 +241,9 @@ module AuthProto
         redirect_count: redirect_count
       )
     rescue Net::OpenTimeout, Net::ReadTimeout => e
-      raise HttpError.new("Request timeout: #{e.message}", nil)
+      raise HTTPError.new("Request timeout: #{e.message}", nil)
     rescue StandardError => e
-      raise HttpError.new("Request failed: #{e.message}", nil)
+      raise HTTPError.new("Request failed: #{e.message}", nil)
     end
 
     def configure_http_client!(http, ssl: true)
@@ -275,7 +275,7 @@ module AuthProto
       redirect_count = kwargs[:redirect_count]
 
       return response unless response.is_a?(Net::HTTPRedirection)
-      raise HttpError.new("Too many redirects", response) if redirect_count >= MAX_REDIRECTS
+      raise HTTPError.new("Too many redirects", response) if redirect_count >= MAX_REDIRECTS
 
       location = URI(response["location"])
       location = kwargs[:original_uri] + location if location.relative?
@@ -302,14 +302,14 @@ module AuthProto
     def check_success_status!(response)
       return if response.is_a?(Net::HTTPSuccess)
 
-      raise HttpError.new("HTTP request failed: #{response.code} #{response.message}", response)
+      raise HTTPError.new("HTTP request failed: #{response.code} #{response.message}", response)
     end
 
     def check_content_length!(response)
       content_length = response["content-length"]&.to_i || response.body&.bytesize || 0
       return unless content_length > MAX_RESPONSE_SIZE
 
-      raise HttpError.new("Response too large: #{content_length} bytes", response)
+      raise HTTPError.new("Response too large: #{content_length} bytes", response)
     end
   end
 end

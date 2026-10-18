@@ -1,6 +1,6 @@
 module AuthProto
   module ServerMetadata
-    class OriginUrl
+    class OriginURL
       @url: String
       @uri: URI
 
