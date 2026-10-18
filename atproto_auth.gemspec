@@ -9,13 +9,13 @@ Gem::Specification.new do |spec|
 
   spec.summary = "Ruby implementation of the AT Protocol OAuth specification"
   spec.description = "A Ruby library for implementing AT Protocol OAuth flows, including DPoP, PAR, and dynamic client registration. Supports both client and server-side implementations with comprehensive security features."
-  spec.homepage = "https://github.com/jhuckabee/atproto_auth"
+  spec.homepage = "https://github.com/mackuba/atproto_auth"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.2.0"
 
   spec.metadata["homepage_uri"] = spec.homepage
-  spec.metadata["source_code_uri"] = "https://github.com/jhuckabee/atproto_auth"
-  spec.metadata["changelog_uri"] = "https://github.com/jhuckabee/atproto_auth/blob/main/CHANGELOG.md"
+  spec.metadata["source_code_uri"] = "https://github.com/mackuba/atproto_auth"
+  spec.metadata["changelog_uri"] = "https://github.com/mackuba/atproto_auth/blob/main/CHANGELOG.md"
   spec.metadata["rubygems_mfa_required"] = "true"
 
   gemspec = File.basename(__FILE__)
