@@ -57,17 +57,47 @@ require 'atproto_auth/token/refresh'
 
 require 'atproto_auth/client'
 
+#
 # AuthProto is a Ruby library implementing the AT Protocol OAuth specification.
-# It provides functionality for both client and server-side implementations of
-# the AT Protocol OAuth flow, including support for DPoP, PAR, and dynamic client registration.
+# It provides OAuth clients with DPoP, PAR, identity discovery, client metadata
+# validation, and storage for sessions and tokens.
+#
+
 module AuthProto
   class << self
+
+    # Global settings object, replaced without validation.
+    #
+    # @param value [Configuration] replacement global settings
+    # @return [Configuration]
+    #
     attr_writer :configuration
 
+    # Returns the process-wide configuration, creating defaults on first access.
+    #
+    # The default storage is in memory; `http_client` is initially `nil` and must be
+    # configured before discovery or OAuth requests.
+    #
+    # @return [Configuration] current global settings
+    #
     def configuration
       @configuration ||= Configuration.new
     end
 
+    # Yields the global configuration, validates it, and returns it.
+    #
+    # Changes remain on the global object even if validation fails.
+    #
+    # @yield [config] block that changes settings
+    # @yieldparam config [Configuration] mutable global settings
+    # @yieldreturn [Object] ignored
+    # @return [Configuration] validated global settings
+    # @raise [ConfigurationError] if the storage or HTTP client is invalid
+    # @example Configure the default transport
+    #   AuthProto.configure do |config|
+    #     config.http_client = AuthProto::HttpClient.new
+    #   end
+    #
     def configure
       yield(configuration)
       configuration.validate!
@@ -80,8 +110,11 @@ module AuthProto
       configuration.storage
     end
 
-    # Resets the configuration to defaults
-    # Primarily used in testing
+    # Replaces the global configuration with a fresh set of defaults.
+    # Existing client instances and their dependencies are not rebuilt.
+    #
+    # @return [Configuration] new global settings
+    #
     def reset_configuration!
       @configuration = Configuration.new
     end

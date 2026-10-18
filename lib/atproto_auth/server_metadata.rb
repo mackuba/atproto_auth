@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module AuthProto
+
+  #
   # Provides functionality for fetching and validating AT Protocol OAuth server metadata
   # from both Resource Servers (PDS instances) and Authorization Servers (PDS/entryway).
   #
@@ -19,6 +21,8 @@ module AuthProto
   # - {ResourceServer} - Handles PDS metadata validation and authorization server discovery
   # - {AuthorizationServer} - Handles authorization server metadata validation
   # - {OriginUrl} - Validates URLs conform to AT Protocol's "simple origin URL" requirements
+  #
+
   module ServerMetadata
   end
 end

@@ -3,49 +3,80 @@
 require 'json'
 
 module AuthProto
+
+  #
   # Main client class for AT Protocol OAuth implementation. Handles the complete
   # OAuth flow including authorization, token management, and identity verification.
+  #
+
   class Client
+
     # Error raised when authorization callback fails
     class CallbackError < Error; end
 
     # Error raised when token operations fail
     class TokenError < Error; end
 
+    #
     # Error raised when session operations fail
+    #
+
     class SessionError < Error
+
+      # Identifier of the session associated with the failure, if known.
+      # @return [String, nil]
       attr_reader :session_id
 
+      # Creates a session error with an optional session identifier.
+      #
+      # @param message [String] explanation of the failure
+      # @param session_id [String, nil] associated session ID
+      #
       def initialize(message, session_id: nil)
         @session_id = session_id
         super(message)
       end
     end
 
-    # @return [String] OAuth client ID
+    # OAuth client ID URL.
+    # @return [String]
     attr_reader :client_id
 
-    # @return [String] OAuth redirect URI
+    # Callback URI registered in the client metadata.
+    # @return [String]
     attr_reader :redirect_uri
 
-    # @return [ClientMetadata] Validated client metadata
+    # Validated client metadata.
+    # @return [ClientMetadata]
     attr_reader :client_metadata
 
-    # @return [SessionManager] Session state manager
+    # Manager for stored OAuth sessions.
+    # @return [State::SessionManager]
     attr_reader :session_manager
 
-    # @return [Identity::Resolver] Identity resolver
+    # Resolver for account handles, DIDs and server bindings.
+    # @return [Identity::Resolver]
     attr_reader :identity_resolver
 
-    # @return [DPoP::Client] DPoP client
+    # DPoP key, proof and nonce manager.
+    # @return [DPoP::Client]
     attr_reader :dpop_client
 
-    # Creates a new AT Protocol OAuth client
+    # Creates an OAuth client with its own DPoP key and session manager.
+    #
+    # Configure {AuthProto.configure} with an HTTP transport before fetching metadata
+    # or starting authorization. Reuse `dpop_key` when restoring tokens bound to that key.
+    #
     # @param client_id [String] OAuth client ID URL
-    # @param redirect_uri [String] OAuth redirect URI
-    # @param metadata [Hash, nil] Optional pre-loaded client metadata
-    # @param dpop_key [Hash, nil] Optional existing DPoP key in JWK format
-    # @raise [Error] if configuration is invalid
+    # @param redirect_uri [String] callback URI listed in `redirect_uris`
+    # @param metadata [Hash{String => Object}, nil] preloaded metadata, or `nil` to fetch `client_id`
+    # @param dpop_key [Hash{String => Object}, nil] existing private DPoP JWK, or `nil` to generate one
+    #
+    # @raise [InvalidClientMetadata] if client metadata is invalid or unavailable
+    # @raise [Error] if the redirect URI is not registered
+    # @raise [DPoP::KeyManager::KeyError] if the DPoP key cannot be imported or generated
+    # @raise [HttpClient::HttpError, HttpClient::SSRFError] if fetching client metadata fails
+    #
     def initialize(client_id:, redirect_uri:, metadata: nil, dpop_key: nil)
       @client_id = client_id
       @redirect_uri = redirect_uri
@@ -59,12 +90,26 @@ module AuthProto
       @dpop_client = initialize_dpop(dpop_key)
     end
 
-    # Begins an authorization flow and generates authorization URL
-    # @param handle [String, nil] Optional user handle
-    # @param pds_url [String, nil] Optional PDS URL
-    # @param scope [String] OAuth scope (must include "atproto")
-    # @return [Hash] Authorization details including :url and :session_id
-    # @raise [Error] if parameters are invalid or resolution fails
+    # Starts authorization, stores a pending session, and submits a PAR request.
+    #
+    # Supply exactly one of `handle` or `pds_url`. Open the returned `:url` in a browser
+    # and pass the eventual callback parameters to {#handle_callback}.
+    #
+    # @param handle [String, nil] account handle, optionally prefixed with `@`
+    # @param pds_url [String, nil] PDS URL when no handle is supplied
+    # @param scope [String] space-separated scopes, including `atproto`
+    #
+    # @return [Hash{Symbol => String}] `:url` is the browser URL; `:session_id` identifies the pending session
+    # @raise [Error] if both/neither identity arguments are supplied or `atproto` is absent
+    # @raise [Identity::ResolutionError] if handle or DID resolution fails
+    # @raise [InvalidAuthorizationServer] if server discovery or metadata validation fails
+    # @raise [PAR::Error] if the pushed authorization request fails
+    # @raise [PAR::ClientAssertion::Error] if confidential-client signing fails
+    # @raise [DPoP::Client::Error] if generating the PAR proof fails
+    # @raise [HttpClient::SSRFError] if server discovery rejects a destination
+    # @raise [Storage::StorageError] if session storage or locking fails
+    # @raise [Encryption::EncryptionError] if session serialization cannot encrypt secrets
+    #
     def authorize(handle: nil, pds_url: nil, scope: "atproto")
       validate_auth_params!(handle, pds_url, scope)
 
@@ -99,13 +144,27 @@ module AuthProto
       }
     end
 
-    # Handles the authorization callback and completes token exchange
-    # @param code [String] Authorization code from callback
-    # @param state [String] State parameter from callback
-    # @param iss [String] Issuer from callback (required by AT Protocol OAuth)
-    # @return [Hash] Token response including :access_token and :session_id
-    # @raise [CallbackError] if callback validation fails
-    # @raise [TokenError] if token exchange fails
+    # Validates a callback, exchanges its code, and stores the authenticated session.
+    #
+    # The result contains `:access_token` (String), `:token_type` (String, `DPoP`),
+    # `:expires_in` (Integer seconds remaining), `:refresh_token` (String or nil),
+    # and `:scope` (String).
+    # It also contains `:session_id` (String) and `:did` (String).
+    #
+    # @param code [String] authorization code from the callback
+    # @param state [String] state token from the callback
+    # @param iss [String] issuer URL from the callback
+    #
+    # @return [Hash{Symbol => String, Integer, nil}] tokens and authenticated session details
+    # @raise [CallbackError] if state is unknown or the issuer does not match the session
+    # @raise [TokenError] if token exchange or response validation fails
+    # @raise [DPoP::Client::Error, PAR::ClientAssertion::Error] if proof/assertion generation fails
+    # @raise [HttpClient::HttpError, HttpClient::SSRFError] if token transport fails
+    # @raise [State::SessionError] if token subject conflicts with the session DID
+    # @raise [ArgumentError] if returned token fields fail token-set validation
+    # @raise [Storage::StorageError] if session storage or locking fails
+    # @raise [Encryption::EncryptionError] if tokens cannot be encrypted for storage
+    #
     def handle_callback(code:, state:, iss:)
       # Find and validate session
       session = session_manager.get_session_by_state(state)
@@ -150,9 +209,16 @@ module AuthProto
       end
     end
 
-    # Gets active tokens for a session
-    # @param session_id [String] ID of session to get tokens for
-    # @return [Hash, nil] Current token information if session exists and is authorized
+    # Reads tokens for a session with a currently valid access token.
+    #
+    # The result contains `:access_token` (String), `:token_type` (String, `DPoP`),
+    # `:expires_in` (Integer seconds remaining), `:refresh_token` (String or nil),
+    # and `:scope` (String).
+    # This method does not refresh expired tokens.
+    #
+    # @param session_id [String] session identifier
+    # @return [Hash{Symbol => String, Integer, nil}, nil] token details, or `nil` for missing/unauthorized sessions
+    #
     def get_tokens(session_id)
       session = session_manager.get_session(session_id)
       return nil unless session&.authorized?
@@ -166,8 +232,22 @@ module AuthProto
       }
     end
 
-    # Refreshes tokens for a session
-    # @param session_id [String] ID of session to refresh
+    # Refreshes a renewable session and persists the replacement tokens.
+    #
+    # The result contains `:access_token` (String), `:token_type` (String, `DPoP`),
+    # `:expires_in` (Integer seconds remaining), `:refresh_token` (String or nil),
+    # and `:scope` (String).
+    # The result also contains `:session_id` (String). An expired access token can
+    # still be refreshed when the stored session has a refresh token.
+    #
+    # @param session_id [String] session to refresh
+    # @return [Hash{Symbol => String, Integer, nil}] replacement tokens and session ID
+    # @raise [TokenError] if the session is missing or has no refresh token
+    # @raise [Token::RefreshError] if token refresh fails or exhausts retries
+    # @raise [State::SessionError] if replacement tokens have a different subject
+    # @raise [Storage::StorageError] if session storage or locking fails
+    # @raise [Encryption::EncryptionError] if replacement tokens cannot be stored
+    #
     def refresh_token(session_id)
       session = session_manager.get_session(session_id)
       raise TokenError, "Invalid session" unless session
@@ -199,19 +279,29 @@ module AuthProto
     end
 
     # Checks if a session has valid tokens
+    #
     # @param session_id [String] ID of session to check
     # @return [Boolean] true if session exists and has valid tokens
+    #
     def authorized?(session_id)
       session = session_manager.get_session(session_id)
       session&.authorized? || false
     end
 
-    # Generates headers for an authenticated request
-    # @param session_id [String] ID of session to use
-    # @param method [String] HTTP method for the request
-    # @param url [String] Full URL for the request
-    # @return [Hash] Headers to add to request
-    # @raise [TokenError] if session is invalid or unauthorized
+    # Builds authorization headers and a fresh DPoP proof for one HTTP request.
+    #
+    # The caller sends the request. This method does not refresh tokens, send HTTP,
+    # or retry nonce challenges. Feed response headers to {DPoP::Client#process_response}
+    # and call {#refresh_token} explicitly when needed. Generate new headers for each retry.
+    #
+    # @param session_id [String] authorized session ID
+    # @param method [String] HTTP method for the proof
+    # @param url [String] absolute request URL without a query string or fragment
+    #
+    # @return [Hash{String => String}] `Authorization: DPoP ...` and `DPoP` proof headers
+    # @raise [TokenError] if the session is missing or its access token is expired
+    # @raise [DPoP::Client::Error] if proof generation or nonce lookup fails
+    #
     def auth_headers(session_id:, method:, url:)
       session = session_manager.get_session(session_id)
       raise TokenError, "Invalid session" unless session
@@ -230,17 +320,24 @@ module AuthProto
       }
     end
 
-    # Removes a session and its stored data
-    # @param session_id [String] ID of session to remove
+    # Removes a stored session and its state-token lookup.
+    #
+    # @param session_id [String] session identifier
     # @return [void]
+    # @raise [Storage::StorageError] if deletion or locking fails
+    #
     def remove_session(session_id)
       key = Storage::KeyBuilder.session_key(session_id)
       AuthProto.storage.delete(key)
       session_manager.remove_session(session_id)
     end
 
-    # Cleans up expired sessions from storage
+    # Invokes the session manager's expiry cleanup hook.
+    #
+    # Currently a no-op; expiry is checked during retrieval and by storage TTLs.
+    #
     # @return [void]
+    #
     def cleanup_expired_sessions
       session_manager.cleanup_expired
     end

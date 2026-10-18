@@ -2,18 +2,47 @@
 
 module AuthProto
   module State
-    # Represents a set of OAuth tokens and their associated metadata
-    class TokenSet
-      attr_reader :access_token, :refresh_token, :token_type,
-                  :scope, :expires_at, :sub
 
-      # Creates a new TokenSet from a token response
-      # @param access_token [String] The access token
-      # @param token_type [String] Token type (must be "DPoP")
-      # @param expires_in [Integer] Token lifetime in seconds
-      # @param refresh_token [String, nil] Optional refresh token
-      # @param scope [String] Space-separated list of granted scopes
-      # @param sub [String] DID of the authenticated user
+    #
+    # Represents a set of OAuth tokens and their associated metadata
+    #
+
+    class TokenSet
+
+      # DPoP-bound access token.
+      # @return [String]
+      attr_reader :access_token
+
+      # Refresh token, if issued.
+      # @return [String, nil]
+      attr_reader :refresh_token
+
+      # Token scheme; always `DPoP`.
+      # @return [String]
+      attr_reader :token_type
+
+      # Space-separated granted scopes.
+      # @return [String]
+      attr_reader :scope
+
+      # Access token expiry time.
+      # @return [Time]
+      attr_reader :expires_at
+
+      # DID of the authenticated account.
+      # @return [String]
+      attr_reader :sub
+
+      # Creates a token set and calculates its expiry from the current time.
+      #
+      # @param access_token [String] nonempty DPoP-bound access token
+      # @param token_type [String] must be `DPoP`
+      # @param expires_in [Integer] lifetime in seconds; negative values represent expired tokens
+      # @param scope [String] nonempty space-separated granted scopes
+      # @param sub [String] nonempty account DID
+      # @param refresh_token [String, nil] refresh token, if issued
+      # @raise [ArgumentError] if required strings are missing, the token type is wrong, or expiry is not an integer
+      #
       def initialize(
         access_token:,
         token_type:,
@@ -42,11 +71,15 @@ module AuthProto
         !@refresh_token.nil? && !@refresh_token.empty?
       end
 
-      # Whether the access token has expired
-      # @return [Boolean]
+      # Checks expiry, treating tokens close to expiry as already expired.
+      #
+      # @param buffer [Numeric] seconds before actual expiry to consider the token expired
+      # @return [Boolean] whether the token has expired or is within the buffer
+      #
       def expired?(buffer = 30)
         Time.now >= (@expires_at - buffer)
       end
+
 
       private
 

@@ -4,17 +4,42 @@ require 'uri'
 
 module AuthProto
   module DPoP
+
+    #
     # Manages DPoP nonces provided by servers during the OAuth flow.
     # Tracks separate nonces for each server using persistent storage.
     # Thread-safe to handle concurrent requests.
+    #
+
     class NonceManager
+
       # Error for nonce-related issues
       class NonceError < AuthProto::Error; end
 
+      #
       # Represents a stored nonce with its server URL
-      class StoredNonce
-        attr_reader :value, :server_url, :timestamp
+      #
 
+      class StoredNonce
+
+        # Nonce value received from the server.
+        # @return [String]
+        attr_reader :value
+
+        # Server origin associated with the nonce.
+        # @return [String]
+        attr_reader :server_url
+
+        # Creation timestamp; defaults to integer Unix seconds.
+        # @return [Integer, Time]
+        attr_reader :timestamp
+
+        # Creates a nonce record without validation.
+        #
+        # @param value [String] server-provided nonce
+        # @param server_url [String] server origin URL
+        # @param timestamp [Integer, Time, nil] timestamp to retain, or `nil` for current Unix seconds
+        #
         def initialize(value, server_url, timestamp: nil)
           @value = value
           @server_url = server_url
@@ -22,18 +47,28 @@ module AuthProto
         end
       end
 
-      # Default time in seconds a nonce is considered valid
+      # Default stored nonce lifetime in seconds.
+      # @return [Integer]
       DEFAULT_TTL = 300 # 5 minutes
 
+      # Creates a nonce manager using the global storage backend.
+      #
+      # @param ttl [Integer, nil] nonce lifetime in seconds; `nil` uses {DEFAULT_TTL}
+      # @raise [ArgumentError] if the master encryption key is not valid Base64
+      #
       def initialize(ttl: nil)
         @ttl = ttl || DEFAULT_TTL
         @serializer = Serialization::StoredNonce.new
       end
 
-      # Updates the stored nonce for a server
-      # @param nonce [String] The new nonce value
-      # @param server_url [String] The server's URL
-      # @raise [NonceError] if inputs are invalid
+      # Stores a nonce for the URL's origin, replacing any previous value.
+      #
+      # @param nonce [String] nonempty server-provided nonce
+      # @param server_url [String] HTTPS URL, or HTTP URL with host `localhost`
+      # @return [void]
+      # @raise [NonceError] if inputs are invalid or storage reports failure
+      # @raise [Storage::StorageError] if backend validation or storage fails
+      #
       def update(nonce:, server_url:)
         validate_inputs!(nonce, server_url)
         origin = normalize_server_url(server_url)
@@ -47,10 +82,13 @@ module AuthProto
         raise NonceError, "Failed to store nonce"
       end
 
-      # Gets the current nonce for a server
-      # @param server_url [String] The server's URL
-      # @return [String, nil] The current nonce or nil if none exists/expired
-      # @raise [NonceError] if server_url is invalid
+      # Retrieves the current nonce for a URL's origin.
+      #
+      # @param server_url [String] HTTPS URL, or HTTP URL with host `localhost`
+      # @return [String, nil] stored nonce, or `nil` when missing/expired according to storage TTL
+      # @raise [NonceError] if the URL is invalid or serialized data cannot be read
+      # @raise [Storage::StorageError] if storage retrieval fails
+      #
       def get(server_url)
         validate_server_url!(server_url)
         origin = normalize_server_url(server_url)
@@ -67,8 +105,13 @@ module AuthProto
         end
       end
 
-      # Clears a nonce for a server
-      # @param server_url [String] The server's URL
+      # Removes the stored nonce for a URL's origin.
+      #
+      # @param server_url [String] HTTPS URL, or HTTP URL with host `localhost`
+      # @return [Boolean] backend deletion status
+      # @raise [NonceError] if the URL is invalid
+      # @raise [Storage::StorageError] if deletion fails
+      #
       def clear(server_url)
         validate_server_url!(server_url)
         origin = normalize_server_url(server_url)
@@ -76,9 +119,13 @@ module AuthProto
         AuthProto.storage.delete(key)
       end
 
-      # Check if a server has a valid nonce
-      # @param server_url [String] The server's URL
-      # @return [Boolean] true if server has a valid nonce
+      # Checks for an unexpired nonce record in storage for a URL's origin.
+      #
+      # @param server_url [String] HTTPS URL, or HTTP URL with host `localhost`
+      # @return [Boolean] whether the backend reports a nonce record present
+      # @raise [NonceError] if the URL is invalid
+      # @raise [Storage::StorageError] if the existence check fails
+      #
       def valid_nonce?(server_url)
         validate_server_url!(server_url)
         origin = normalize_server_url(server_url)

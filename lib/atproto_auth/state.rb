@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module AuthProto
+
+  #
   # Manages OAuth state for AT Protocol authorization flows. This module provides thread-safe
   # storage and management of authorization session data, including tokens, PKCE values,
   # and identity information.
@@ -29,7 +31,7 @@ module AuthProto
   #   )
   #
   #   # Update session with tokens
-  #   tokens = TokenSet.new(
+  #   tokens = AuthProto::State::TokenSet.new(
   #     access_token: "...",
   #     token_type: "DPoP",
   #     expires_in: 3600,
@@ -37,17 +39,20 @@ module AuthProto
   #     sub: "did:plc:abcdef123"
   #   )
   #   session.tokens = tokens
+  #   manager.update_session(session)
   #
   #   # Lookup session later
-  #   session = manager.get_session(session_id)
+  #   session = manager.get_session(session.session_id)
   #   if session.authorized?
   #     puts "Access token: #{session.tokens.access_token}"
   #   end
   #
-  # All classes in this module are thread-safe and can be used in concurrent environments.
-  # The module handles secure generation and validation of state tokens, and ensures
-  # consistency of session data through synchronized access.
+  # Session mutation is synchronized, and the session manager uses backend locks
+  # when persisting changes. TokenSet values themselves are read-only.
+  #
+
   module State
+
     # Error raised for session-related issues
     class SessionError < AuthProto::Error; end
   end

@@ -7,22 +7,38 @@ require 'uri'
 
 module AuthProto
   module Identity
+
+    #
     # Resolves and validates AT Protocol identities
+    #
+
     class Resolver
+
+      # Default PLC directory used to fetch DID documents.
+      # @return [String]
       PLC_DIRECTORY_URL = "https://plc.directory"
+
+      # Prefix accepted in DNS TXT handle resolution.
+      # @return [String]
       DID_PLC_PREFIX = "did:plc:"
+
+      # Handle hostname pattern used by the resolver.
+      # @return [Regexp]
       HANDLE_REGEX = /^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$/
 
-      # Creates a new Identity resolver
-      # @param plc_directory [String] Optional custom PLC directory URL
+      # Creates an identity resolver using the global HTTP transport.
+      # @param plc_directory [String, nil] PLC directory base URL; `nil` uses {PLC_DIRECTORY_URL}
+      #
       def initialize(plc_directory: nil)
         @plc_directory = plc_directory || PLC_DIRECTORY_URL
       end
 
-      # Resolves a handle to a DID Document
-      # @param handle [String] The handle to resolve (with or without @ prefix)
-      # @return [Hash] Resolution result with :did, :document, and :pds keys
-      # @raise [ResolutionError] if resolution fails
+      # Resolves a handle via DNS TXT, then HTTPS well-known lookup, and loads its DID document.
+      #
+      # @param handle [String] account handle, optionally prefixed with `@`; normalized to lowercase
+      # @return [Hash{Symbol => String, Document}] `:did` (String), `:document` (Document), and `:pds` (String)
+      # @raise [ResolutionError] if validation, DNS/HTTP resolution, JSON parsing or document validation fails
+      #
       def resolve_handle(handle)
         validate_handle!(handle)
         normalized = normalize_handle(handle)
@@ -37,10 +53,12 @@ module AuthProto
         raise ResolutionError, "Failed to resolve handle #{handle}: #{e.message}"
       end
 
-      # Fetches and parses DID Document
-      # @param did [String] The DID to resolve
-      # @return [Hash] Resolution result with :did, :document, and :pds keys
-      # @raise [ResolutionError] if resolution fails
+      # Fetches a `did:plc` or `did:web` document and validates its PDS endpoint.
+      #
+      # @param did [String] DID whose document should be fetched
+      # @return [Hash{Symbol => String, Document}] `:did` (String), `:document` (Document), and `:pds` (String)
+      # @raise [ResolutionError] if validation, DNS/HTTP resolution, JSON parsing or document validation fails
+      #
       def get_did_info(did)
         DID.new(did).validate!
 
@@ -59,10 +77,12 @@ module AuthProto
       end
 
       # Verifies that a PDS hosts a given DID
+      #
       # @param did [String] The DID to verify
       # @param pds_url [String] The PDS URL to check
       # @return [Boolean] true if verification succeeds
       # @raise [ValidationError] if verification fails
+      #
       def verify_pds_binding(did, pds_url)
         info = get_did_info(did)
         if normalize_url(info[:pds]) != normalize_url(pds_url)
@@ -75,10 +95,12 @@ module AuthProto
       end
 
       # Verifies that an auth server (issuer) is authorized for a DID
+      #
       # @param did [String] The DID to verify
       # @param issuer [String] The issuer URL to verify
       # @return [Boolean] true if verification succeeds
       # @raise [ValidationError] if verification fails
+      #
       def verify_issuer_binding(did, issuer)
         # Get PDS location from DID
         info = get_did_info(did)
@@ -99,10 +121,12 @@ module AuthProto
       end
 
       # Verifies that a handle belongs to a DID
+      #
       # @param handle [String] Handle to verify
       # @param did [String] DID to check against
       # @return [Boolean] true if verification succeeds
       # @raise [ValidationError] if verification fails
+      #
       def verify_handle_binding(handle, did)
         info = get_did_info(did)
 

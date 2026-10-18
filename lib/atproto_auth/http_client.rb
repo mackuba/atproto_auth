@@ -7,9 +7,16 @@ require 'resolv'
 require 'uri'
 
 module AuthProto
+
+  #
   # A secure HTTP client for making OAuth-related requests.
   # Implements protections against SSRF attacks and enforces security headers.
+  #
+
   class HttpClient
+
+    # IPv4/IPv6 destinations rejected by the secure transport.
+    # @return [Array<IPAddr>]
     FORBIDDEN_IP_RANGES = [
       IPAddr.new("0.0.0.0/8"),      # Current network
       IPAddr.new("10.0.0.0/8"),     # Private network
@@ -23,39 +30,82 @@ module AuthProto
       IPAddr.new("fe80::/10")       # Link-local address
     ].freeze
 
+    # URL schemes accepted by the secure transport; HTTPS only.
+    # @return [Array<String>]
     ALLOWED_SCHEMES = ["https"].freeze
+
+    # Default open/read timeout in seconds.
+    # @return [Integer]
     DEFAULT_TIMEOUT = 10 # seconds
+
+    # Maximum redirects followed for a single request.
+    # @return [Integer]
     MAX_REDIRECTS = 5
+
+    # Maximum accepted response body size in bytes.
+    # @return [Integer]
     MAX_RESPONSE_SIZE = 10 * 1024 * 1024 # 10MB
 
     # Error raised when a request is blocked due to SSRF protection
     class SSRFError < Error; end
 
+    #
     # Error raised when an HTTP request fails
+    #
+
     class HttpError < Error
+
+      # Response associated with the failure, when retained by the transport.
+      # @return [Net::HTTPResponse, nil]
       attr_reader :response
 
+      # Creates an HTTP transport error with an optional response.
+      #
+      # @param message [String] failure description
+      # @param response [Net::HTTPResponse, nil] response associated with the error
+      #
       def initialize(message, response)
         @response = response
         super(message)
       end
     end
 
+    # Value object for redirect request context.
+    #
+    # Fields are `original_uri` (URI::HTTP), `method` (Symbol), `response`
+    # (Net::HTTPResponse), `headers` (a string-keyed header hash), `redirect_count`
+    # (Integer), and `body` (String, Hash or nil). Inherits construction and immutable
+    # member access from `Data`.
+    #
+    # @see Data
+    #
     RedirectHandlerOptions = Data.define(:original_uri, :method, :response, :headers, :redirect_count, :body)
 
-    # @param timeout [Integer] Request timeout in seconds
-    # @param verify_ssl [Boolean] Whether to verify SSL certificates
+    # Creates an HTTP transport with timeouts and certificate verification settings.
+    #
+    # @param timeout [Numeric] open and read timeout, each in seconds
+    # @param verify_ssl [Boolean] whether HTTPS peer certificates must be verified
+    #
     def initialize(timeout: DEFAULT_TIMEOUT, verify_ssl: true)
       @timeout = timeout
       @verify_ssl = verify_ssl
     end
 
-    # Makes a secure HTTP GET request
-    # @param url [String] URL to request
-    # @param headers [Hash] Additional headers to send
-    # @return [Hash] Response with :status, :headers, and :body
-    # @raise [SSRFError] If the request would be unsafe
-    # @raise [HttpError] If the request fails
+    # Sends an HTTP GET request with destination validation and redirect handling.
+    #
+    # Uses HTTPS and rejects private/loopback destinations by default. Subclasses may
+    # relax these rules. Follows at most {MAX_REDIRECTS} redirects and checks size
+    # against {MAX_RESPONSE_SIZE} using `Content-Length`, or body bytes when absent.
+    # Non-2xx status codes are returned for the caller to interpret; they do not
+    # themselves raise an exception.
+    #
+    # @param url [String] absolute HTTPS request URL without a fragment
+    # @param headers [Hash{String => String}] additional request headers; can override the default `Cache-Control` value
+    # @return [Hash{Symbol => Integer, Hash{String => String}, String, nil}] `:status` (Integer), lowercase `:headers` (Hash), and `:body` (String or nil)
+    # @raise [SSRFError] if initial scheme, host, fragment or resolved address is rejected
+    # @raise [HttpError] if transport, TLS, redirect validation or response size checks fail
+    # @raise [URI::InvalidURIError] if the initial URL cannot be parsed
+    #
     def get(url, headers = {})
       uri = validate_uri!(url)
       validate_ip!(uri)
@@ -70,13 +120,22 @@ module AuthProto
       }
     end
 
-    # Makes a secure HTTP POST request
-    # @param url [String] URL to request
-    # @param body [String] Request body
-    # @param headers [Hash] Additional headers to send
-    # @return [Hash] Response with :status, :headers, and :body
-    # @raise [SSRFError] If the request would be unsafe
-    # @raise [HttpError] If the request fails
+    # Sends an HTTP POST request with destination validation and redirect handling.
+    #
+    # Uses HTTPS and rejects private/loopback destinations by default. Subclasses may
+    # relax these rules. Follows at most {MAX_REDIRECTS} redirects and checks size
+    # against {MAX_RESPONSE_SIZE} using `Content-Length`, or body bytes when absent.
+    # Non-2xx status codes are returned for the caller to interpret; they do not
+    # themselves raise an exception.
+    #
+    # @param url [String] absolute HTTPS request URL without a fragment
+    # @param body [String, Hash, nil] raw bytes, form fields encoded with `URI.encode_www_form`, or no body
+    # @param headers [Hash{String => String}] additional request headers; can override the default `Cache-Control` value
+    # @return [Hash{Symbol => Integer, Hash{String => String}, String, nil}] `:status` (Integer), lowercase `:headers` (Hash), and `:body` (String or nil)
+    # @raise [SSRFError] if initial scheme, host, fragment or resolved address is rejected
+    # @raise [HttpError] if transport, TLS, redirect validation or response size checks fail
+    # @raise [URI::InvalidURIError] if the initial URL cannot be parsed
+    #
     def post(url, body: nil, headers: {})
       uri = validate_uri!(url)
       validate_ip!(uri)
@@ -90,6 +149,7 @@ module AuthProto
         body: response.body
       }
     end
+
 
     private
 
@@ -209,6 +269,7 @@ module AuthProto
     # - headers: Hash of headers from the original request
     # - redirect_count: Number of redirects so far
     # - body: Request body for POST requests
+    #
     def handle_redirect(**kwargs)
       response = kwargs[:response]
       redirect_count = kwargs[:redirect_count]

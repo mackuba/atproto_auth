@@ -5,19 +5,58 @@ require 'securerandom'
 
 module AuthProto
   module State
+
+    #
     # Tracks state for an OAuth authorization flow session
+    #
+
     class Session
       include MonitorMixin
 
-      attr_reader :session_id, :state_token, :client_id, :scope,
-                  :pkce_verifier, :pkce_challenge, :auth_server,
-                  :did, :tokens
+      # Unique identifier used to retrieve this session.
+      # @return [String]
+      attr_reader :session_id
 
-      # Creates a new OAuth session
+      # Random OAuth state token for callback validation.
+      # @return [String]
+      attr_reader :state_token
+
+      # OAuth client identifier.
+      # @return [String]
+      attr_reader :client_id
+
+      # Space-separated requested scopes.
+      # @return [String]
+      attr_reader :scope
+
+      # Secret PKCE verifier used for code exchange.
+      # @return [String]
+      attr_reader :pkce_verifier
+
+      # S256 PKCE challenge sent in PAR.
+      # @return [String]
+      attr_reader :pkce_challenge
+
+      # Bound authorization server, once discovered.
+      # @return [ServerMetadata::AuthorizationServer, nil]
+      attr_reader :auth_server
+
+      # Bound account DID, once resolved.
+      # @return [String, nil]
+      attr_reader :did
+
+      # Most recently assigned tokens, if any.
+      # @return [TokenSet, nil]
+      attr_reader :tokens
+
+      # Creates session identifiers, a state token, and a PKCE verifier/challenge pair.
+      #
       # @param client_id [String] OAuth client ID
-      # @param scope [String] Requested scope
-      # @param auth_server [AuthorizationServer, nil] Optional pre-resolved auth server
-      # @param did [String, nil] Optional pre-resolved DID
+      # @param scope [String] requested space-separated scopes
+      # @param auth_server [ServerMetadata::AuthorizationServer, nil] pre-resolved authorization server
+      # @param did [String, nil] pre-resolved account DID
+      # @raise [PKCE::Error] if PKCE generation fails
+      #
       def initialize(client_id:, scope:, auth_server: nil, did: nil)
         super() # Initialize MonitorMixin
 
@@ -35,10 +74,12 @@ module AuthProto
         @tokens = nil
       end
 
-      # Updates the authorization server for this session
-      # @param server [AuthorizationServer] The resolved auth server
-      # @return [void]
-      # @raise [SessionError] if session is already bound to different server
+      # Binds this session to an authorization server.
+      #
+      # @param server [ServerMetadata::AuthorizationServer] resolved authorization server
+      # @return [ServerMetadata::AuthorizationServer] assigned server when called as a method
+      # @raise [SessionError] if already bound to a server with a different issuer
+      #
       def authorization_server=(server)
         synchronize do
           if @auth_server && @auth_server.issuer != server.issuer
@@ -49,10 +90,12 @@ module AuthProto
         end
       end
 
-      # Updates the user's DID for this session
-      # @param did [String] The resolved DID
-      # @return [void]
-      # @raise [SessionError] if session already has different DID
+      # Binds this session to an account DID.
+      #
+      # @param did [String] resolved DID
+      # @return [String] assigned DID
+      # @raise [SessionError] if already bound to a different DID
+      #
       def did=(did)
         synchronize do
           raise SessionError, "Session already bound to different DID" if @did && @did != did
@@ -61,10 +104,14 @@ module AuthProto
         end
       end
 
-      # Updates tokens for this session
-      # @param tokens [TokenSet] New token set
-      # @return [void]
-      # @raise [SessionError] if tokens don't match session DID
+      # Stores tokens in this session object and binds an unbound session to their subject.
+      #
+      # Call {SessionManager#update_session} to persist the changed session.
+      #
+      # @param tokens [TokenSet] replacement token set
+      # @return [String] existing or newly bound session DID when called as a method
+      # @raise [SessionError] if token subject conflicts with the existing session DID
+      #
       def tokens=(tokens)
         synchronize do
           raise SessionError, "Token subject doesn't match session DID" if @did && tokens.sub != @did
@@ -90,9 +137,11 @@ module AuthProto
         end
       end
 
-      # Validates a state token against this session
-      # @param state [String] State token to validate
-      # @return [Boolean]
+      # Compares a supplied state token with the session token in constant time.
+      #
+      # @param state [String, nil] callback state token
+      # @return [Boolean] whether it matches; `false` for `nil` or a different length
+      #
       def validate_state(state)
         return false unless state
 

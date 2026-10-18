@@ -3,9 +3,16 @@
 require_relative 'http_client'
 
 module AuthProto
+
+  #
   # Development transport for mixed local HTTP and remote HTTPS requests.
   # Allows private/loopback destinations; HTTPS certificate verification is kept.
+  #
+
   class InsecureHttpClient < HttpClient
+
+    # HTTP and HTTPS schemes accepted for development requests.
+    # @return [Array<String>]
     ALLOWED_SCHEMES = %w[http https].freeze
 
     private

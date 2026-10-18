@@ -4,18 +4,37 @@ require 'json'
 require 'time'
 
 module AuthProto
+
+  #
+  # Versioned JSON serialization with encryption of sensitive OAuth fields.
+  #
+
   module Serialization
+
+    # Base class for malformed serialized data and serializer validation errors.
     class Error < AuthProto::Error; end
 
+    # Raised when a serialized envelope uses an invalid or unsupported version.
     class VersionError < Error; end
 
+    # Raised when an envelope type does not match the selected serializer.
     class TypeMismatchError < Error; end
 
+    # Raised when a serializer receives an object of the wrong type.
     class ValidationError < Error; end
 
+    #
     # Base serializer that all type-specific serializers inherit from
+    #
+
     class Base
+
+      # Current JSON envelope schema version.
+      # @return [Integer]
       CURRENT_VERSION = 1
+
+      # Field names encrypted recursively before JSON serialization.
+      # @return [Array<String>]
       SENSITIVE_FIELDS = [
         "access_token",
         "refresh_token",
@@ -25,28 +44,56 @@ module AuthProto
       ].freeze
 
       class << self
-        # Serialize object to storage format
-        # @param obj [Object] Object to serialize
-        # @return [String] JSON serialized data
+
+        # Serializes an object into a versioned JSON envelope, encrypting sensitive fields.
+        #
+        # Concrete subclasses validate the input type and provide the data representation.
+        #
+        # @param obj [Object] object supported by the concrete serializer
+        # @return [String] JSON with `version`, `type`, timestamps and `data` fields
+        # @raise [ValidationError] if the concrete serializer rejects the object
+        # @raise [Encryption::EncryptionError] if a sensitive value cannot be encrypted
+        # @raise [NotImplementedError] if used without implementing the abstract serializer hooks
+        #
         def serialize(obj)
           new.serialize(obj)
         end
 
-        # Deserialize from storage format
-        # @param data [String] JSON serialized data
-        # @return [Object] Deserialized object
+        # Restores an object from a versioned JSON envelope, decrypting sensitive fields.
+        #
+        # The concrete serializer determines the returned object class.
+        #
+        # @param data [String] JSON previously produced by the matching serializer
+        # @return [Object] reconstructed object
+        # @raise [Error] if JSON or the envelope format is invalid
+        # @raise [TypeMismatchError] if the envelope has a different type identifier
+        # @raise [VersionError] if the format version is invalid or unsupported
+        # @raise [Encryption::DecryptionError] if sensitive data cannot be authenticated/decrypted
+        # @raise [ArgumentError] if reconstructed fields fail validation or date/time parsing
+        # @raise [NotImplementedError] if used without implementing the abstract serializer hooks
+        #
         def deserialize(data)
           new.deserialize(data)
         end
       end
 
+      # Creates a serializer with a context-aware encryption service.
+      # @raise [ArgumentError] if `ATPROTO_MASTER_KEY` is not valid Base64
+      #
       def initialize
         @encryption = Encryption::Service.new
       end
 
-      # Serialize object to storage format
-      # @param obj [Object] Object to serialize
-      # @return [String] JSON serialized data
+      # Serializes an object into a versioned JSON envelope, encrypting sensitive fields.
+      #
+      # Concrete subclasses validate the input type and provide the data representation.
+      #
+      # @param obj [Object] object supported by the concrete serializer
+      # @return [String] JSON with `version`, `type`, timestamps and `data` fields
+      # @raise [ValidationError] if the concrete serializer rejects the object
+      # @raise [Encryption::EncryptionError] if a sensitive value cannot be encrypted
+      # @raise [NotImplementedError] if used without implementing the abstract serializer hooks
+      #
       def serialize(obj)
         validate_object!(obj)
 
@@ -66,9 +113,19 @@ module AuthProto
         JSON.generate(data)
       end
 
-      # Deserialize from storage format
-      # @param data [String] JSON serialized data
-      # @return [Object] Deserialized object
+      # Restores an object from a versioned JSON envelope, decrypting sensitive fields.
+      #
+      # The concrete serializer determines the returned object class.
+      #
+      # @param data [String] JSON previously produced by the matching serializer
+      # @return [Object] reconstructed object
+      # @raise [Error] if JSON or the envelope format is invalid
+      # @raise [TypeMismatchError] if the envelope has a different type identifier
+      # @raise [VersionError] if the format version is invalid or unsupported
+      # @raise [Encryption::DecryptionError] if sensitive data cannot be authenticated/decrypted
+      # @raise [ArgumentError] if reconstructed fields fail validation or date/time parsing
+      # @raise [NotImplementedError] if used without implementing the abstract serializer hooks
+      #
       def deserialize(data)
         parsed = parse_json(data)
         validate_serialized_data!(parsed)
@@ -136,22 +193,28 @@ module AuthProto
       end
 
       # Serialize object to hash
-      # @param obj [Object] Object to serialize
+      #
+      # @param _obj [Object] Object to serialize
       # @return [Hash] Serialized data
+      #
       def serialize_data(_obj)
         raise NotImplementedError
       end
 
       # Deserialize object from hash
-      # @param data [Hash] Serialized data
+      #
+      # @param _data [Hash] Serialized data
       # @return [Object] Deserialized object
+      #
       def deserialize_data(_data)
         raise NotImplementedError
       end
 
       # Validate object before serialization
-      # @param obj [Object] Object to validate
+      #
+      # @param _obj [Object] Object to validate
       # @raise [ValidationError] if object is invalid
+      #
       def validate_object!(_obj)
         raise NotImplementedError
       end

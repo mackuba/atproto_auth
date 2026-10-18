@@ -2,8 +2,15 @@
 
 module AuthProto
   module Serialization
+
+    #
     # Handles serialization of StoredNonce objects
+    #
+
     class StoredNonce < Base
+
+      # Returns the envelope type used by this serializer.
+      # @return [String] `StoredNonce`
       def type_identifier
         "StoredNonce"
       end
@@ -13,8 +20,7 @@ module AuthProto
       def validate_object!(obj)
         return if obj.is_a?(AuthProto::DPoP::NonceManager::StoredNonce)
 
-        raise ValidationError,
-              "Expected StoredNonce object, got #{obj.class}"
+        raise ValidationError, "Expected StoredNonce object, got #{obj.class}"
       end
 
       def serialize_data(obj)

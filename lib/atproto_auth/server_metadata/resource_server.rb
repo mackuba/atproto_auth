@@ -5,26 +5,44 @@ require 'uri'
 
 module AuthProto
   module ServerMetadata
+
+    #
     # This class represents a Resource Server (PDS) and is responsible for
     # validating and managing its metadata. It ensures that the authorization
     # server URLs provided are valid and compliant with expected standards.
     # The class also includes functionality to fetch and parse metadata from a
     # remote URL, raising specific errors for invalid or malformed metadata.
+    #
+
     class ResourceServer
+
+      # Authorization server origins; validation requires exactly one entry.
+      # @return [Array<String>]
       attr_reader :authorization_servers
 
+      # Validates resource server metadata and its single authorization server origin.
+      #
+      # @param metadata [Hash{String => Object}] discovery document containing `authorization_servers`
+      # @raise [InvalidAuthorizationServer] if the list is missing or does not contain one valid origin
+      # @raise [URI::InvalidURIError] if the authorization server URI cannot be parsed
+      #
       def initialize(metadata)
         @authorization_servers = validate_authorization_servers!(metadata["authorization_servers"])
       end
 
-      # Fetches and validates Resource Server metadata from a URL
-      # @param url [String] PDS URL to fetch metadata from
-      # @return [ResourceServer] new instance with fetched metadata
-      # @raise [InvalidAuthorizationServer] if metadata is invalid
+      # Fetches `/.well-known/oauth-protected-resource` using the configured transport.
+      #
+      # @param url [String] resource server/PDS base URL
+      # @return [ResourceServer] validated resource server metadata
+      # @raise [InvalidAuthorizationServer] if HTTP transport, JSON parsing or metadata validation fails
+      # @raise [HttpClient::SSRFError] if the transport rejects the initial destination
+      # @raise [URI::InvalidURIError] if the PDS or authorization server URL cannot be parsed
+      #
       def self.from_url(url)
         response = fetch_metadata(url)
         new(parse_metadata(response[:body]))
       end
+
 
       private
 

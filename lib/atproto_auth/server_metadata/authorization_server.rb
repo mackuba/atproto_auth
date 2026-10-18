@@ -5,6 +5,8 @@ require 'uri'
 
 module AuthProto
   module ServerMetadata
+
+    #
     # Handles fetching and validation of AT Protocol OAuth Authorization Server metadata.
     # An Authorization Server in atproto can be either a PDS instance or a separate "entryway" server
     # that handles authentication for multiple PDS instances.
@@ -23,7 +25,12 @@ module AuthProto
     #   end
     #
     # @see https://atproto.com/specs/oauth#authorization-servers Documentation of Authorization Server requirements
+    #
+
     class AuthorizationServer
+
+      # Metadata keys that must be present before capability validation.
+      # @return [Array<String>]
       REQUIRED_FIELDS = %w[
         issuer
         authorization_endpoint
@@ -38,21 +45,70 @@ module AuthProto
         pushed_authorization_request_endpoint
       ].freeze
 
-      attr_reader :issuer, :authorization_endpoint, :token_endpoint,
-                  :pushed_authorization_request_endpoint, :response_types_supported,
-                  :grant_types_supported, :code_challenge_methods_supported,
-                  :token_endpoint_auth_methods_supported,
-                  :token_endpoint_auth_signing_alg_values_supported,
-                  :scopes_supported, :dpop_signing_alg_values_supported
+      # Authorization server issuer origin.
+      # @return [String]
+      attr_reader :issuer
 
+      # HTTPS browser authorization endpoint.
+      # @return [String]
+      attr_reader :authorization_endpoint
+
+      # HTTPS token exchange and refresh endpoint.
+      # @return [String]
+      attr_reader :token_endpoint
+
+      # HTTPS PAR endpoint.
+      # @return [String]
+      attr_reader :pushed_authorization_request_endpoint
+
+      # Supported response types, including `code`.
+      # @return [Array<String>]
+      attr_reader :response_types_supported
+
+      # Supported grant types, including authorization code and refresh token.
+      # @return [Array<String>]
+      attr_reader :grant_types_supported
+
+      # Supported PKCE methods, including `S256`.
+      # @return [Array<String>]
+      attr_reader :code_challenge_methods_supported
+
+      # Supported client authentication methods.
+      # @return [Array<String>]
+      attr_reader :token_endpoint_auth_methods_supported
+
+      # Supported client assertion algorithms.
+      # @return [Array<String>]
+      attr_reader :token_endpoint_auth_signing_alg_values_supported
+
+      # Supported scopes, including `atproto`.
+      # @return [Array<String>]
+      attr_reader :scopes_supported
+
+      # Supported DPoP algorithms, including `ES256`.
+      # @return [Array<String>]
+      attr_reader :dpop_signing_alg_values_supported
+
+      # Validates an authorization server's OAuth metadata.
+      #
+      # @param metadata [Hash{String => Object}] parsed discovery document with the fields in {REQUIRED_FIELDS} and required Boolean capabilities
+      # @raise [InvalidAuthorizationServer] if required capabilities, issuer or endpoint schemes are invalid
+      # @raise [URI::InvalidURIError] if a metadata URL cannot be parsed
+      #
       def initialize(metadata)
         validate_and_set_metadata!(metadata)
       end
 
-      # Fetches and validates Authorization Server metadata from an issuer URL
-      # @param issuer [String] Authorization Server issuer URL
-      # @return [AuthorizationServer] new instance with fetched metadata
-      # @raise [InvalidAuthorizationServer] if metadata is invalid
+      # Fetches `/.well-known/oauth-authorization-server` using the configured transport.
+      #
+      # The document's issuer must exactly match the requested issuer.
+      #
+      # @param issuer [String] authorization server issuer origin
+      # @return [AuthorizationServer] validated discovery metadata
+      # @raise [InvalidAuthorizationServer] if HTTP transport fails, JSON is invalid, or metadata/issuer validation fails
+      # @raise [HttpClient::SSRFError] if the transport rejects the initial destination
+      # @raise [URI::InvalidURIError] if the issuer or a metadata URI cannot be parsed
+      #
       def self.from_issuer(issuer)
         response = fetch_metadata(issuer)
         metadata = parse_metadata(response[:body])
@@ -60,6 +116,14 @@ module AuthProto
         new(metadata)
       end
 
+      # Exports metadata for serialization using symbol keys.
+      #
+      # Includes issuer/endpoints (String), capability lists (Array<String>), and the
+      # three required Boolean flags set to `true`. Use JSON serialization to obtain
+      # string keys suitable for passing back to {#initialize}.
+      #
+      # @return [Hash{Symbol => String, Array<String>, Boolean}] authorization server metadata
+      #
       def to_h
         {
           issuer: issuer,

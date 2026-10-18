@@ -4,32 +4,131 @@ require 'cgi'
 
 module AuthProto
   module PAR
+
+    #
     # Represents a pushed authorization request
+    #
+
     class Request
+
+      #
       # Configuration for request parameters
+      #
+
       class Configuration
-        attr_accessor :client_id, :redirect_uri, :code_challenge,
-                      :code_challenge_method, :state, :scope, :login_hint,
-                      :nonce, :dpop_proof, :client_assertion_type,
-                      :client_assertion
+
+        # OAuth client identifier.
+        # @return [String, nil]
+        attr_accessor :client_id
+
+        # Registered OAuth callback URI.
+        # @return [String, nil]
+        attr_accessor :redirect_uri
+
+        # S256 PKCE challenge.
+        # @return [String, nil]
+        attr_accessor :code_challenge
+
+        # PKCE method; must be `S256`.
+        # @return [String, nil]
+        attr_accessor :code_challenge_method
+
+        # Random state token to validate the callback.
+        # @return [String, nil]
+        attr_accessor :state
+
+        # Space-separated scopes including `atproto`.
+        # @return [String, nil]
+        attr_accessor :scope
+
+        # Account handle to prefill at the authorization server.
+        # @return [String, nil]
+        attr_accessor :login_hint
+
+        # Optional authorization nonce parameter.
+        # @return [String, nil]
+        attr_accessor :nonce
+
+        # Optional proof value retained on the request; {Client#submit} generates its own HTTP proof.
+        # @return [String, nil]
+        attr_accessor :dpop_proof
+
+        # JWT bearer assertion type for confidential clients.
+        # @return [String, nil]
+        attr_accessor :client_assertion_type
+
+        # Signed client authentication JWT for confidential clients.
+        # @return [String, nil]
+        attr_accessor :client_assertion
       end
 
-      # Required parameters
-      attr_reader :response_type, :client_id, :code_challenge,
-                  :code_challenge_method, :state, :redirect_uri, :scope
+      # OAuth response type; always `code`.
+      # @return [String]
+      attr_reader :response_type
 
-      # Optional parameters
-      attr_reader :login_hint, :nonce, :dpop_proof
+      # OAuth client identifier.
+      # @return [String]
+      attr_reader :client_id
 
-      # Client authentication (for confidential clients)
-      attr_reader :client_assertion_type, :client_assertion
+      # Registered OAuth callback URI.
+      # @return [String]
+      attr_reader :redirect_uri
 
+      # S256 PKCE challenge.
+      # @return [String]
+      attr_reader :code_challenge
+
+      # PKCE method; must be `S256`.
+      # @return [String]
+      attr_reader :code_challenge_method
+
+      # Random state token to validate the callback.
+      # @return [String]
+      attr_reader :state
+
+      # Space-separated scopes including `atproto`.
+      # @return [String]
+      attr_reader :scope
+
+      # Account handle to prefill at the authorization server.
+      # @return [String, nil]
+      attr_reader :login_hint
+
+      # Optional authorization nonce parameter.
+      # @return [String, nil]
+      attr_reader :nonce
+
+      # Optional proof value retained on the request; {Client#submit} generates its own HTTP proof.
+      # @return [String, nil]
+      attr_reader :dpop_proof
+
+      # JWT bearer assertion type for confidential clients.
+      # @return [String, nil]
+      attr_reader :client_assertion_type
+
+      # Signed client authentication JWT for confidential clients.
+      # @return [String, nil]
+      attr_reader :client_assertion
+
+      # Builds a validated PAR request by yielding a mutable parameter configuration.
+      #
+      # @yield [config] block that sets the request parameters
+      # @yieldparam config [Configuration] mutable request settings
+      # @yieldreturn [Object] ignored
+      # @return [Request] validated pushed authorization request
+      # @raise [Error] if required parameters, PKCE, scope or client authentication are invalid
+      #
       def self.build
         config = Configuration.new
         yield(config)
         new(config)
       end
 
+      # Copies and validates a PAR parameter configuration.
+      #
+      # @param config [Configuration] populated request settings
+      # @raise [Error] if required values are missing or authentication/PKCE/scope values are invalid
+      #
       def initialize(config)
         # Required parameters
         @response_type = "code" # Always "code" for AT Protocol OAuth

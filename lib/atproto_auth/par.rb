@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module AuthProto
+
+  #
   # Handles creation and processing of Pushed Authorization Requests (PAR)
   # according to RFC 9126 and AT Protocol OAuth requirements.
   #
@@ -10,16 +12,19 @@ module AuthProto
   # are then included in the authorization redirect.
   #
   # @example Basic PAR request
-  #   par = AuthProto::PAR::Client.new(endpoint: "https://auth.example.com/par")
-  #
-  #   request = par.create_request(
-  #     client_id: "https://app.example.com/client-metadata.json",
-  #     redirect_uri: "https://app.example.com/callback",
-  #     code_challenge: "abc123...",
-  #     code_challenge_method: "S256",
-  #     state: "xyz789...",
-  #     scope: "atproto"
+  #   par = AuthProto::PAR::Client.new(
+  #     endpoint: "https://auth.example.com/par",
+  #     dpop_client: AuthProto::DPoP::Client.new
   #   )
+  #
+  #   request = AuthProto::PAR::Request.build do |config|
+  #     config.client_id = "https://app.example.com/client-metadata.json"
+  #     config.redirect_uri = "https://app.example.com/callback"
+  #     config.code_challenge = "abc123..."
+  #     config.code_challenge_method = "S256"
+  #     config.state = "xyz789..."
+  #     config.scope = "atproto"
+  #   end
   #
   #   response = par.submit(request)
   #   auth_url = par.authorization_url(
@@ -27,10 +32,15 @@ module AuthProto
   #     request_uri: response.request_uri,
   #     client_id: request.client_id
   #   )
+  #
+
   module PAR
+
     # Error raised for PAR-related issues
     class Error < AuthProto::Error; end
 
+    # OAuth JWT bearer client assertion type URN.
+    # @return [String]
     CLIENT_ASSERTION_TYPE = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
   end
 end

@@ -7,15 +7,43 @@ require 'uri'
 
 module AuthProto
 
+  #
   # One-shot loopback OAuth callback listener for use from IRB.
+  #
+
   class LocalhostServer
+
+    # Maximum total size of an incoming request header block in bytes.
+    # @return [Integer]
     MAX_HEADER_BYTES = 16_384
+
+    # Maximum time in seconds to read one incoming request header block.
+    # @return [Integer]
     REQUEST_TIMEOUT = 5
+
+    # Literal IP ranges accepted for callback listeners.
+    # @return [Array<IPAddr>]
     LOOPBACK_RANGES = [IPAddr.new("127.0.0.0/8"), IPAddr.new("::1/128")].freeze
 
-    class CallbackError < StandardError
-      attr_reader :error_code, :error_description
+    #
+    # Raised when the authorization server returns an OAuth error to the loopback listener.
+    #
 
+    class CallbackError < StandardError
+
+      # OAuth error code returned in the callback.
+      # @return [String]
+      attr_reader :error_code
+
+      # Optional human-readable error description from the authorization server.
+      # @return [String, nil]
+      attr_reader :error_description
+
+      # Creates an error for an authorization server's rejected callback.
+      #
+      # @param error_code [String] callback `error` value
+      # @param error_description [String, nil] callback `error_description` value
+      #
       def initialize(error_code, error_description)
         @error_code = error_code
         @error_description = error_description
@@ -24,13 +52,46 @@ module AuthProto
       end
     end
 
+    #
+    # Signals an invalid callback HTTP request; the listener catches it and keeps waiting.
+    #
+
     class InvalidRequest < StandardError
     end
 
+    # Creates a one-shot loopback callback listener and blocks until login finishes.
+    #
+    # Open the authorization URL yourself while this call blocks. The callback block
+    # runs in the calling thread. Unrelated/malformed requests keep the listener alive.
+    # The listener closes after success, an OAuth error, a block exception, or interruption.
+    #
+    # @param metadata [Hash{String, Symbol => Object}] metadata whose first redirect URI selects host, port and path
+    # @param timeout [Numeric] positive maximum wait for incoming connections, in seconds; defaults to 300
+    # @param block [Proc] callback handler required to finish token exchange
+    #
+    # @yield [params] callback handler; any exception is propagated after socket cleanup
+    # @yieldparam params [Hash{Symbol => String}] `:code`, `:state`, and `:iss` from the query string
+    # @yieldreturn [Object] arbitrary result returned from `start`, including `nil` or `false`
+    # @return [Object] callback block result
+    #
+    # @raise [ArgumentError] if metadata/timeout is invalid or no block is supplied
+    # @raise [CallbackError] if the callback contains an OAuth `error` parameter
+    # @raise [Timeout::Error] if waiting for an incoming connection exceeds the deadline
+    # @raise [SystemCallError, IOError] if binding or accepting a connection fails
+    # @raise [Interrupt] when interrupted, for example with Ctrl-C
+    #
     def self.start(metadata, timeout: 300, &block)
       new(metadata).start(timeout: timeout, &block)
     end
 
+    # Selects the first redirect URI in metadata for a loopback HTTP listener.
+    #
+    # Accepts `localhost`, IPv4 loopback, or IPv6 loopback. The URI must have a valid
+    # port and no user information or fragment. Its path is used as the callback path.
+    #
+    # @param metadata [Hash{String, Symbol => Object}] metadata containing a nonempty `redirect_uris` array of strings
+    # @raise [ArgumentError] if the first redirect URI is missing, malformed or not a supported HTTP loopback URL
+    #
     def initialize(metadata)
       redirects = metadata['redirect_uris'] || metadata[:redirect_uris]
 
@@ -53,6 +114,26 @@ module AuthProto
       raise ArgumentError, "Invalid redirect URI"
     end
 
+    # Listens on the configured loopback URI until a callback completes.
+    #
+    # Open the authorization URL yourself while this call blocks. The callback block
+    # runs in the calling thread. Unrelated/malformed requests keep the listener alive.
+    # The listener closes after success, an OAuth error, a block exception, or interruption.
+    #
+    # @param timeout [Numeric] positive maximum wait for incoming connections, in seconds; defaults to 300
+    # @param block [Proc] callback handler required to finish token exchange
+    #
+    # @yield [params] callback handler; any exception is propagated after socket cleanup
+    # @yieldparam params [Hash{Symbol => String}] `:code`, `:state`, and `:iss` from the query string
+    # @yieldreturn [Object] arbitrary result returned from `start`, including `nil` or `false`
+    # @return [Object] callback block result
+    #
+    # @raise [ArgumentError] if metadata/timeout is invalid or no block is supplied
+    # @raise [CallbackError] if the callback contains an OAuth `error` parameter
+    # @raise [Timeout::Error] if waiting for an incoming connection exceeds the deadline
+    # @raise [SystemCallError, IOError] if binding or accepting a connection fails
+    # @raise [Interrupt] when interrupted, for example with Ctrl-C
+    #
     def start(timeout: 300, &block)
       raise ArgumentError, "A callback block is required" unless block_given?
       raise ArgumentError, "timeout must be positive" unless timeout.is_a?(Numeric) && timeout.positive?

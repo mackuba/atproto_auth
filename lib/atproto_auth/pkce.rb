@@ -5,6 +5,8 @@ require 'openssl'
 require 'securerandom'
 
 module AuthProto
+
+  #
   # Implementation of Proof Key for Code Exchange (PKCE) for OAuth 2.0 / AT Protocol
   # as specified in RFC 7636.
   #
@@ -14,22 +16,33 @@ module AuthProto
   # - Verify challenge/verifier pairs
   #
   # Only the S256 challenge method is supported, as required by AT Protocol OAuth.
+  #
+
   module PKCE
+
     # Error raised for PKCE-related failures
     class Error < AuthProto::Error; end
 
-    # Minimum and maximum lengths for code verifier as per RFC 7636
+    # Minimum PKCE verifier length in characters.
+    # @return [Integer]
     MIN_VERIFIER_LENGTH = 43
+
+    # Maximum PKCE verifier length in characters.
+    # @return [Integer]
     MAX_VERIFIER_LENGTH = 128
 
-    # PKCE code verifier charset as per RFC 7636 Section 4.1
+    # Allowed PKCE verifier characters from RFC 7636.
+    # @return [Regexp]
     ALLOWED_VERIFIER_CHARS = /^[A-Za-z0-9\-\._~]+$/
 
     class << self
+
       # Generates a cryptographically secure random code verifier
+      #
       # @param length [Integer] Length of verifier to generate
       # @return [String] The generated code verifier
       # @raise [Error] if length is invalid
+      #
       def generate_verifier(length = MAX_VERIFIER_LENGTH)
         validate_verifier_length!(length)
 
@@ -41,9 +54,11 @@ module AuthProto
       end
 
       # Creates a code challenge from a verifier using SHA-256
+      #
       # @param verifier [String] The code verifier to create challenge from
       # @return [String] Base64URL-encoded SHA-256 hash of the verifier
       # @raise [Error] if verifier is invalid or hashing fails
+      #
       def generate_challenge(verifier)
         validate_verifier!(verifier)
 
@@ -55,10 +70,12 @@ module AuthProto
       end
 
       # Verifies that a challenge matches a verifier
+      #
       # @param challenge [String] The code challenge to verify
       # @param verifier [String] The code verifier to check against
       # @return [Boolean] true if challenge matches verifier
       # @raise [Error] if inputs are invalid
+      #
       def verify(challenge, verifier)
         # Generate challenge from verifier and compare
         calculated = generate_challenge(verifier)
@@ -69,6 +86,7 @@ module AuthProto
       rescue StandardError => e
         raise Error, "Challenge verification failed: #{e.message}"
       end
+
 
       private
 

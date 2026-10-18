@@ -4,16 +4,40 @@ require 'base64'
 require 'openssl'
 require 'securerandom'
 
-# lib/atproto_auth/encryption.rb
 module AuthProto
+
+  #
+  # AES-GCM envelopes and context-specific key derivation for stored OAuth secrets.
+  #
+
   module Encryption
+
+    # Base class for encryption and key-configuration failures.
     class Error < AuthProto::Error; end
+
+    # Raised when a required key derivation context is missing.
     class ConfigurationError < Error; end
+
+    # Raised when plaintext inputs are invalid or encryption fails.
     class EncryptionError < Error; end
+
+    # Raised when an encrypted envelope cannot be decoded, authenticated or decrypted.
     class DecryptionError < Error; end
 
+    #
     # HKDF implementation based on RFC 5869
+    #
+
     module HKDF
+
+      # Derives key bytes with HKDF-SHA256 (RFC 5869).
+      #
+      # @param secret [#to_s] input key material
+      # @param salt [String] extraction salt; an empty string uses 32 zero bytes
+      # @param info [String] application/context information for expansion
+      # @param length [Integer] number of output bytes to derive
+      # @return [String] derived binary key material
+      #
       def self.derive(secret, salt:, info:, length:)
         # 1. extract
         prk = OpenSSL::HMAC.digest(
@@ -38,15 +62,36 @@ module AuthProto
       end
     end
 
+    #
     # Core encryption service - used internally by serializers
+    #
+
     class Service
+
+      # OpenSSL cipher name used for authenticated encryption.
+      # @return [String]
       CIPHER = "aes-256-gcm"
+
+      # Version stored in encrypted field envelopes.
+      # @return [Integer]
       VERSION = 1
 
+      # Creates an encryption service backed by {KeyProvider}.
+      # @raise [ArgumentError] if the configured master key is not valid Base64
+      #
       def initialize
         @key_provider = KeyProvider.new
       end
 
+      # Encrypts a string representation of data using AES-256-GCM and a context-derived key.
+      #
+      # The context is also authenticated; decryption must use the same context.
+      #
+      # @param data [#to_s] non-`nil` plaintext value, converted to a string
+      # @param context [String] nonempty context used for key derivation and authentication
+      # @return [Hash{Symbol => Integer, String}] envelope with `:version` (Integer) and Base64 `:iv`, `:data`, `:tag` (String)
+      # @raise [EncryptionError] if inputs are invalid or encryption fails
+      #
       def encrypt(data, context:)
         validate_encryption_inputs!(data, context)
 
@@ -71,6 +116,13 @@ module AuthProto
         raise EncryptionError, "Encryption failed: #{e.message}"
       end
 
+      # Authenticates and decrypts an envelope returned by {#encrypt}.
+      #
+      # @param encrypted [Hash{Symbol => Integer, String}] symbol-keyed `:version`, `:iv`, `:data`, `:tag` envelope
+      # @param context [String] same nonempty context used for encryption
+      # @return [String] plaintext bytes
+      # @raise [DecryptionError] if the context, key, version, encoding or authentication tag is invalid
+      #
       def decrypt(encrypted, context:)
         validate_decryption_inputs!(encrypted, context)
         validate_encrypted_data!(encrypted)
@@ -92,6 +144,7 @@ module AuthProto
       rescue StandardError => e
         raise DecryptionError, "Decryption failed: #{e.message}"
       end
+
 
       private
 
@@ -122,21 +175,47 @@ module AuthProto
       end
     end
 
+    #
     # Handles key management and derivation
+    #
+
     class KeyProvider
+
+      # Protects creation of the process fallback master key.
+      # @return [Mutex]
       EPHEMERAL_KEY_MUTEX = Mutex.new
 
-      # All serializers in this process must share the fallback master key.
+      # Returns a randomly generated master key shared by this class within the process.
+      #
+      # The key is cached under a mutex and is lost when the process exits.
+      #
+      # @return [String] 32 bytes of binary key material
+      #
       def self.ephemeral_master_key
         EPHEMERAL_KEY_MUTEX.synchronize do
           @ephemeral_master_key ||= SecureRandom.random_bytes(32)
         end
       end
 
+      # Loads the master key from `ATPROTO_MASTER_KEY` or uses the process fallback.
+      #
+      # Set the environment variable to a Base64-encoded master secret, typically
+      # 32 random bytes. Context-specific AES-256 keys are derived from that secret.
+      # Without it, a warning is emitted and {KeyProvider.ephemeral_master_key} is used;
+      # data encrypted with that fallback cannot be recovered after a restart.
+      #
+      # @raise [ArgumentError] if `ATPROTO_MASTER_KEY` is not valid Base64
+      #
       def initialize
         @master_key = load_master_key
       end
 
+      # Derives a 32-byte key specific to an encryption context.
+      #
+      # @param context [String] context label, such as `data.access_token`
+      # @return [String] context-specific binary key
+      # @raise [ConfigurationError] if context is `nil`
+      #
       def key_for_context(context)
         raise ConfigurationError, "Context is required" if context.nil?
 
@@ -147,6 +226,7 @@ module AuthProto
           length: 32
         )
       end
+
 
       private
 

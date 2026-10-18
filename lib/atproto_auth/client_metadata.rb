@@ -4,45 +4,122 @@ require 'json'
 require 'uri'
 
 module AuthProto
+
+  #
+  # Supported OAuth application types used by {ClientMetadata}.
+  #
+
   module ApplicationType
-    ALL = [
-      WEB = "web",
-      NATIVE = "native"
-    ].freeze
+
+    # Browser-based OAuth client application type.
+    # @return [String]
+    WEB = "web"
+
+    # Native OAuth client application type.
+    # @return [String]
+    NATIVE = "native"
+
+    # Supported application type values.
+    # @return [Array<String>]
+    ALL = [WEB, NATIVE].freeze
   end
 
+  #
   # Handles validation and management of AT Protocol OAuth client metadata according to
   # the specification. This includes required fields like client_id and redirect URIs,
   # optional metadata like client name and logo, and authentication configuration for
   # confidential clients. Validates that all fields conform to the protocol's requirements,
   # including:
+  #
   # - Application type (web/native) validation and redirect URI rules
   # - Required scopes and grant types
   # - JWKS configuration for confidential clients
   # - DPoP binding requirements
   # - URI scheme and format validation
+  #
+
   class ClientMetadata
 
-    # Required fields
-    attr_reader :application_type, :client_id, :grant_types, :response_types, :redirect_uris, :scope
+    # Application type: `web` (default) or `native`.
+    # @return [String]
+    attr_reader :application_type
 
-    # Optional fields
-    attr_reader :client_name, :client_uri, :logo_uri, :tos_uri, :policy_uri
+    # Client metadata URL or localhost client identifier.
+    # @return [String]
+    attr_reader :client_id
 
-    # Authentication and key-related fields
-    attr_reader :token_endpoint_auth_method, :jwks, :jwks_uri
+    # Allowed grant types, including `authorization_code`.
+    # @return [Array<String>]
+    attr_reader :grant_types
 
-    # Initializes a new ClientMetadata instance from metadata hash.
-    # @param metadata [Hash] Client metadata.
-    # @raise [InvalidClientMetadata] if metadata is invalid.
+    # Supported response types, including `code`.
+    # @return [Array<String>]
+    attr_reader :response_types
+
+    # Registered OAuth callback URIs.
+    # @return [Array<String>]
+    attr_reader :redirect_uris
+
+    # Space-separated requested scopes, including `atproto`.
+    # @return [String]
+    attr_reader :scope
+
+    # Display name of the client, if supplied.
+    # @return [String, nil]
+    attr_reader :client_name
+
+    # Client homepage URI, if supplied.
+    # @return [String, nil]
+    attr_reader :client_uri
+
+    # HTTPS logo URI, if supplied.
+    # @return [String, nil]
+    attr_reader :logo_uri
+
+    # HTTPS terms-of-service URI, if supplied.
+    # @return [String, nil]
+    attr_reader :tos_uri
+
+    # HTTPS privacy-policy URI, if supplied.
+    # @return [String, nil]
+    attr_reader :policy_uri
+
+    # Client authentication method; `private_key_jwt` identifies confidential clients.
+    # @return [String, nil]
+    attr_reader :token_endpoint_auth_method
+
+    # Inline JWK set for confidential clients, if supplied.
+    # @return [Hash{String => Object}, nil]
+    attr_reader :jwks
+
+    # HTTPS JWK-set URI for confidential clients, if supplied.
+    # @return [String, nil]
+    attr_reader :jwks_uri
+
+    # Validates string-keyed client metadata and exposes its fields.
+    #
+    # Requires `client_id`, `grant_types`, `response_types`, `redirect_uris`, `scope`,
+    # and `dpop_bound_access_tokens: true`. `application_type` defaults to `web`.
+    # Confidential clients using `private_key_jwt` require `ES256` and a JWK set or URI.
+    #
+    # @param metadata [Hash{String => Object}] parsed OAuth client metadata
+    # @raise [InvalidClientMetadata] if a required field or supported value is invalid
+    # @raise [URI::InvalidURIError] if a metadata URI cannot be parsed
+    #
     def initialize(metadata)
       validate_and_set_metadata!(metadata)
     end
 
-    # Fetches client metadata from a URL and creates a new instance.
-    # @param url [String] URL to fetch metadata from.
-    # @return [ClientMetadata] new instance with fetched metadata.
-    # @raise [InvalidClientMetadata] if metadata is invalid or cannot be fetched.
+    # Fetches and validates a client metadata document using the configured transport.
+    #
+    # The document's `client_id` must equal the requested URL.
+    #
+    # @param url [String] HTTPS metadata URL, or localhost URL for development
+    # @return [ClientMetadata] validated metadata
+    # @raise [InvalidClientMetadata] if metadata is missing, invalid/mismatched, not JSON, or transport isn't configured
+    # @raise [HttpClient::HttpError, HttpClient::SSRFError] if the transport rejects/fails the request
+    # @raise [URI::InvalidURIError] if a URL cannot be parsed
+    #
     def self.from_url(url)
       validate_url!(url)
       response = fetch_metadata(url)
@@ -56,6 +133,7 @@ module AuthProto
     def confidential?
       token_endpoint_auth_method == "private_key_jwt"
     end
+
 
     private
 

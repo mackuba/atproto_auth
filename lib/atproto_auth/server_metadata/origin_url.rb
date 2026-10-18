@@ -4,6 +4,8 @@ require 'uri'
 
 module AuthProto
   module ServerMetadata
+
+    #
     # The `OriginUrl` class provides validation logic for URLs that must conform
     # to the AT Protocol OAuth "simple origin URL" requirements. These requirements
     # are common between Resource and Authorization Servers and ensure that the URL
@@ -16,9 +18,23 @@ module AuthProto
     #
     # This model centralizes the URL validation logic to promote reusability and
     # consistency between different server classes.
-    class OriginUrl
-      attr_reader :url, :uri
+    #
 
+    class OriginUrl
+
+      # Original URL string supplied by the caller.
+      # @return [String]
+      attr_reader :url
+
+      # Parsed URI used for origin validation.
+      # @return [URI::Generic]
+      attr_reader :uri
+
+      # Parses a candidate server origin; call {#valid?} to check origin restrictions.
+      #
+      # @param url [String] origin URL to parse
+      # @raise [URI::InvalidURIError] if the input cannot be parsed as a URI
+      #
       def initialize(url)
         @url = url
         @uri = URI(url)

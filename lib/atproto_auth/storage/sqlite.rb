@@ -13,13 +13,30 @@ end
 
 module AuthProto
   module Storage
+
+    #
     # SQLite storage implementation
+    #
+
     class SQLite < Interface
+
       # Error raised for SQLite-specific issues
       class SQLiteError < StorageError; end
 
+      # Default SQLite lock-wait timeout in milliseconds.
+      # @return [Integer]
       DEFAULT_BUSY_TIMEOUT = 5_000
 
+      # Opens a SQLite store, creating parent directories and tables as needed.
+      #
+      # Enables WAL mode and full synchronous writes. Requires the optional `sqlite3` gem.
+      #
+      # @param path [String] database file path
+      # @param busy_timeout [Integer] nonnegative SQLite lock-wait timeout in milliseconds
+      # @raise [ArgumentError] if `busy_timeout` is not a nonnegative integer
+      # @raise [SQLiteError] if opening or configuring the database fails
+      # @raise [SystemCallError] if creating a parent directory fails
+      #
       def initialize(path:, busy_timeout: DEFAULT_BUSY_TIMEOUT)
         super()
 
@@ -38,6 +55,16 @@ module AuthProto
         raise SQLiteError, "Failed to initialize database: #{e.message}"
       end
 
+      # Stores a value in SQLite storage.
+      #
+      # @param key [String] nonempty key beginning with `atproto:`
+      # @param value [String, Numeric, nil] SQLite-compatible scalar value; strings are used for serialized OAuth data
+      # @param ttl [Integer, nil] positive expiry in seconds, or `nil` for no new expiry
+      #
+      # @return [true] if the write succeeds
+      # @raise [StorageError] if key or TTL validation fails
+      # @raise [SQLiteError] if the backend operation fails
+      #
       def set(key, value, ttl: nil)
         validate_key!(key)
         validate_ttl!(ttl)
@@ -58,6 +85,13 @@ module AuthProto
         raise SQLiteError, "Failed to set value: #{e.message}"
       end
 
+      # Retrieves an unexpired value from SQLite storage.
+      #
+      # @param key [String] nonempty key beginning with `atproto:`
+      # @return [String, Numeric, nil] stored value, or `nil` if missing/expired
+      # @raise [StorageError] if the key is invalid
+      # @raise [SQLiteError] if the backend operation fails
+      #
       def get(key)
         validate_key!(key)
 
@@ -81,6 +115,13 @@ module AuthProto
         raise SQLiteError, "Failed to get value: #{e.message}"
       end
 
+      # Deletes a key from SQLite storage.
+      #
+      # @param key [String] nonempty key beginning with `atproto:`
+      # @return [Boolean] whether a stored row/key was deleted
+      # @raise [StorageError] if the key is invalid
+      # @raise [SQLiteError] if the backend operation fails
+      #
       def delete(key)
         validate_key!(key)
 
@@ -94,6 +135,13 @@ module AuthProto
         raise SQLiteError, "Failed to delete value: #{e.message}"
       end
 
+      # Checks for an unexpired key in SQLite storage.
+      #
+      # @param key [String] nonempty key beginning with `atproto:`
+      # @return [Boolean] whether the key exists and has not expired
+      # @raise [StorageError] if the key is invalid
+      # @raise [SQLiteError] if the backend operation fails
+      #
       def exists?(key)
         validate_key!(key)
 
@@ -118,6 +166,23 @@ module AuthProto
         raise SQLiteError, "Failed to check existence: #{e.message}"
       end
 
+      # Acquires a SQLite lock, yields, and releases the lock when the block exits.
+      #
+      # Locks expire after `ttl` seconds and are not renewed while the block runs.
+      # Exceptions from the block propagate to the caller.
+      #
+      # @param key [String] nonempty lock key beginning with `atproto:`
+      # @param ttl [Integer] positive lock lifetime in seconds
+      #
+      # @yield work to protect with the lock
+      # @yieldreturn [Object] value returned to the caller
+      # @return [Object] block result
+      #
+      # @raise [LockError] if another owner holds the lock
+      # @raise [StorageError] if key or TTL validation fails
+      # @raise [ArgumentError] if no block is supplied
+      # @raise [SQLiteError] if the backend operation fails
+      #
       def with_lock(key, ttl: 30)
         raise ArgumentError, "Block required" unless block_given?
 
@@ -131,6 +196,11 @@ module AuthProto
         end
       end
 
+      # Closes the underlying SQLite connection.
+      #
+      # @return [void]
+      # @raise [SQLiteError] if closing the database fails
+      #
       def close
         @database.close
       rescue SQLite3::Exception => e

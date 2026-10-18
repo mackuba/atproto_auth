@@ -13,6 +13,9 @@ gem 'rspec', '~> 3.13'
 gem 'mocha', '~> 2.6'
 gem 'webmock', '~> 3.24'
 
+gem 'rdoc'
+gem 'yard'
+
 gem 'redis', '~> 5.4'
 gem 'sqlite3', '~> 2.9'
 

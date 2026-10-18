@@ -2,8 +2,15 @@
 
 module AuthProto
   module Serialization
+
+    #
     # Handles serialization of Session objects
+    #
+
     class Session < Base
+
+      # Returns the envelope type used by this serializer.
+      # @return [String] `Session`
       def type_identifier
         "Session"
       end
@@ -13,8 +20,7 @@ module AuthProto
       def validate_object!(obj)
         return if obj.is_a?(AuthProto::State::Session)
 
-        raise ValidationError,
-              "Expected Session object, got #{obj.class}"
+        raise ValidationError, "Expected Session object, got #{obj.class}"
       end
 
       def serialize_data(obj)

@@ -4,8 +4,15 @@ require 'time'
 
 module AuthProto
   module Serialization
+
+    #
     # Handles serialization of TokenSet objects
+    #
+
     class TokenSet < Base
+
+      # Returns the envelope type used by this serializer.
+      # @return [String] `TokenSet`
       def type_identifier
         "TokenSet"
       end
@@ -15,8 +22,7 @@ module AuthProto
       def validate_object!(obj)
         return if obj.is_a?(AuthProto::State::TokenSet)
 
-        raise ValidationError,
-              "Expected TokenSet object, got #{obj.class}"
+        raise ValidationError, "Expected TokenSet object, got #{obj.class}"
       end
 
       def serialize_data(obj)

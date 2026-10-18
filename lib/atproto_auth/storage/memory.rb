@@ -4,8 +4,17 @@ require 'monitor'
 
 module AuthProto
   module Storage
+
+    #
     # Thread-safe in-memory storage implementation
+    #
+
     class Memory < Interface
+
+      # Creates an empty in-memory store and starts a background expiry-cleanup thread.
+      #
+      # Data and locks are local to this instance and are lost on process exit.
+      #
       def initialize
         super
         @data = {}
@@ -16,6 +25,14 @@ module AuthProto
         start_cleanup_thread
       end
 
+      # Stores a value in Memory storage.
+      #
+      # @param key [String] nonempty key beginning with `atproto:`
+      # @param value [Object] value retained by reference
+      # @param ttl [Integer, nil] positive expiry in seconds, or `nil` for no new expiry
+      # @return [true] if the write succeeds
+      # @raise [StorageError] if key or TTL validation fails
+      #
       def set(key, value, ttl: nil)
         validate_key!(key)
         validate_ttl!(ttl)
@@ -27,6 +44,12 @@ module AuthProto
         end
       end
 
+      # Retrieves an unexpired value from Memory storage.
+      #
+      # @param key [String] nonempty key beginning with `atproto:`
+      # @return [Object, nil] stored value, or `nil` if missing/expired
+      # @raise [StorageError] if the key is invalid
+      #
       def get(key)
         validate_key!(key)
 
@@ -37,6 +60,12 @@ module AuthProto
         end
       end
 
+      # Deletes a key from Memory storage.
+      #
+      # @param key [String] nonempty key beginning with `atproto:`
+      # @return [true] `true`, including when the key was absent
+      # @raise [StorageError] if the key is invalid
+      #
       def delete(key)
         validate_key!(key)
 
@@ -47,6 +76,12 @@ module AuthProto
         end
       end
 
+      # Checks for an unexpired key in Memory storage.
+      #
+      # @param key [String] nonempty key beginning with `atproto:`
+      # @return [Boolean] whether the key exists and has not expired
+      # @raise [StorageError] if the key is invalid
+      #
       def exists?(key)
         validate_key!(key)
 
@@ -58,6 +93,22 @@ module AuthProto
         end
       end
 
+      # Acquires a Memory lock, yields, and releases the lock when the block exits.
+      #
+      # Locks expire after `ttl` seconds and are not renewed while the block runs.
+      # Exceptions from the block propagate to the caller.
+      #
+      # @param key [String] nonempty lock key beginning with `atproto:`
+      # @param ttl [Integer] positive lock lifetime in seconds
+      #
+      # @yield work to protect with the lock
+      # @yieldreturn [Object] value returned to the caller
+      # @return [Object] block result
+      #
+      # @raise [LockError] if another owner holds the lock
+      # @raise [StorageError] if key or TTL validation fails
+      # @raise [ArgumentError] if no block is supplied
+      #
       def with_lock(key, ttl: 30)
         raise ArgumentError, "Block required" unless block_given?
 
@@ -71,6 +122,8 @@ module AuthProto
         end
       end
 
+      # Clears all values, expiration records and locks from this store.
+      # @return [void]
       def clear
         @monitor.synchronize do
           @data.clear

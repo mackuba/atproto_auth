@@ -4,11 +4,38 @@ require 'json'
 require 'monitor'
 
 module AuthProto
-  module Token
-    # Base error class for token-related errors
-    class Error < AuthProto::Error
-      attr_reader :token_type, :error_code, :retry_possible
 
+  #
+  # Token error types and synchronized refresh-token exchange operations.
+  #
+
+  module Token
+
+    #
+    # Base error class for token-related errors
+    #
+
+    class Error < AuthProto::Error
+
+      # Kind of token associated with the failure.
+      # @return [String]
+      attr_reader :token_type
+
+      # Machine-readable token error code.
+      # @return [String]
+      attr_reader :error_code
+
+      # Whether retrying the operation may succeed.
+      # @return [Boolean]
+      attr_reader :retry_possible
+
+      # Creates a token error with structured retry information.
+      #
+      # @param message [String] human-readable failure description
+      # @param token_type [String] kind of token associated with the failure
+      # @param error_code [String] machine-readable failure code
+      # @param retry_possible [Boolean] whether retrying may succeed
+      #
       def initialize(message, token_type:, error_code:, retry_possible: false)
         @token_type = token_type
         @error_code = error_code
@@ -17,8 +44,15 @@ module AuthProto
       end
     end
 
-    # Specific token error types
+    #
+    # Raised for token expiry; its retry metadata permits a refresh/retry.
+    #
+
     class ExpiredTokenError < Error
+
+      # Creates an error describing token expiry.
+      # @param token_type [String] kind of token that failed
+      #
       def initialize(token_type:)
         super(
           "Token has expired",
@@ -29,8 +63,15 @@ module AuthProto
       end
     end
 
+    #
     # Raised when a token is structurally valid but has been invalidated or revoked
+    #
+
     class InvalidTokenError < Error
+
+      # Creates an error describing token invalidation/revocation.
+      # @param token_type [String] kind of token that failed
+      #
       def initialize(token_type:)
         super(
           "Token is invalid",
@@ -41,8 +82,17 @@ module AuthProto
       end
     end
 
+    #
     # Raised during token refresh operations, includes retry information and server responses
+    #
+
     class RefreshError < Error
+
+      # Creates a refresh error with retry metadata.
+      #
+      # @param message [String] failure description
+      # @param retry_possible [Boolean] whether a later retry may succeed
+      #
       def initialize(message, retry_possible: true)
         super(
           message,
@@ -53,19 +103,48 @@ module AuthProto
       end
     end
 
+    #
     # Handles token refresh operations with retry logic
+    #
+
     class Refresh
       include MonitorMixin
 
-      # Maximum number of refresh attempts
+      # Maximum attempts for one refresh operation.
+      # @return [Integer]
       MAX_RETRIES = 3
-      # Base delay between retries in seconds
+
+      # Initial retry delay in seconds before jitter.
+      # @return [Integer]
       BASE_DELAY = 1
-      # Maximum delay between retries in seconds
+
+      # Maximum retry delay in seconds before jitter.
+      # @return [Integer]
       MAX_DELAY = 8
 
-      attr_reader :session, :dpop_client, :auth_server, :client_metadata
+      # Session containing the tokens to refresh.
+      # @return [State::Session]
+      attr_reader :session
 
+      # DPoP client used to sign refresh requests.
+      # @return [DPoP::Client]
+      attr_reader :dpop_client
+
+      # Server providing the token endpoint.
+      # @return [ServerMetadata::AuthorizationServer]
+      attr_reader :auth_server
+
+      # Client metadata used for optional confidential-client assertions.
+      # @return [ClientMetadata]
+      attr_reader :client_metadata
+
+      # Creates a synchronized refresh operation for an existing OAuth session.
+      #
+      # @param session [State::Session] session with an access and refresh token
+      # @param dpop_client [DPoP::Client] proof signer and nonce tracker
+      # @param auth_server [ServerMetadata::AuthorizationServer] server with a token endpoint
+      # @param client_metadata [ClientMetadata] client ID and authentication key configuration
+      #
       def initialize(session:, dpop_client:, auth_server:, client_metadata:)
         super() # Initialize MonitorMixin
         @session = session
@@ -75,9 +154,15 @@ module AuthProto
         @client_metadata = client_metadata
       end
 
-      # Performs token refresh with retry logic
-      # @return [TokenSet] New token set
-      # @raise [RefreshError] if refresh fails
+      # Exchanges a refresh token for a replacement token set.
+      #
+      # Retries eligible failures up to {MAX_RETRIES} times with exponential backoff and
+      # jitter, and handles a DPoP nonce challenge during token exchange. Does not assign
+      # the returned tokens to the session or persist them; the caller must do so.
+      #
+      # @return [State::TokenSet] validated replacement tokens
+      # @raise [RefreshError] if the session is not renewable, refresh fails, or retries are exhausted
+      #
       def perform!
         synchronize do
           raise RefreshError.new("No refresh token available", retry_possible: false) unless session.renewable?
@@ -88,6 +173,7 @@ module AuthProto
           end
         end
       end
+
 
       private
 

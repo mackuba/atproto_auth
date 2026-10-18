@@ -6,32 +6,45 @@ require 'openssl'
 
 module AuthProto
   module DPoP
+
+    #
     # Manages ES256 keypair generation and storage for DPoP proofs.
     # Provides functionality to generate new keys and store them securely.
     # Uses JOSE for cryptographic operations and key format handling.
+    #
+
     class KeyManager
+
       # Error raised when key operations fail
       class KeyError < AuthProto::Error; end
 
-      # Default curve for ES256 key generation
+      # Elliptic curve used for DPoP signing keys.
+      # @return [String]
       CURVE = "P-256"
-      # Default algorithm for key usage
+
+      # JWS signing algorithm used for DPoP proofs.
+      # @return [String]
       ALGORITHM = "ES256"
 
-      # @return [JOSE::JWK] The current DPoP keypair
+      # Private EC P-256 keypair used for signing.
+      # @return [JOSE::JWK]
       attr_reader :keypair
 
       # Creates a new KeyManager instance with an optional existing keypair
+      #
       # @param keypair [JOSE::JWK, nil] Optional existing keypair to use
       # @raise [KeyError] if the provided keypair is invalid
+      #
       def initialize(keypair = nil)
         @keypair = keypair || generate_keypair
         validate_keypair!
       end
 
       # Generates a new ES256 keypair for DPoP usage
+      #
       # @return [JOSE::JWK] The newly generated keypair
       # @raise [KeyError] if key generation fails
+      #
       def generate_keypair
         # Generate base keypair
         base_key = JOSE::JWK.generate_key([:ec, CURVE])
@@ -54,8 +67,11 @@ module AuthProto
         raise KeyError, "Failed to generate keypair: #{e.message}"
       end
 
-      # Returns the public key in JWK format
-      # @return [Hash] JWK representation of the public key
+      # Exports the public key with `use: sig` and a key ID.
+      #
+      # @return [Hash{String => Object}] public JWK without private key material
+      # @raise [KeyError] if public-key export fails
+      #
       def public_jwk
         jwk = @keypair.to_public.to_map.to_h
         # If somehow the properties aren't set, add them
@@ -66,16 +82,26 @@ module AuthProto
         raise KeyError, "Failed to export public key: #{e.message}"
       end
 
-      # Signs data using the private key
-      # @param data [String] Data to sign
-      # @return [String] The signature
+      # Signs bytes with this keypair and returns a compact JWS.
+      #
+      # @param data [String] payload bytes to sign
+      # @return [JOSE::SignedBinary] compact JWS (a string subclass)
       # @raise [KeyError] if signing fails
+      #
       def sign(data)
         @keypair.sign(data).compact
       rescue StandardError => e
         raise KeyError, "Failed to sign data: #{e.message}"
       end
 
+      # Signs a JSON payload with the supplied protected JWS header and ES256.
+      # Hash keys are recursively converted to strings. The algorithm is forced to `ES256`.
+      #
+      # @param header [Hash{String, Symbol => Object}] protected JOSE header fields
+      # @param payload [Hash{String, Symbol => Object}] JWT claims to JSON-encode
+      # @return [JOSE::SignedBinary] compact JWS (a string subclass)
+      # @raise [KeyError] if encoding or signing fails
+      #
       def sign_segments(header, payload)
         # Deep transform all keys to strings to avoid symbol comparison issues
         header = deep_stringify_keys(header)
@@ -99,6 +125,11 @@ module AuthProto
         raise KeyError, "Failed to sign segments: #{e.message}"
       end
 
+      # Copies hashes and arrays recursively, converting hash keys to strings.
+      #
+      # @param obj [Object] input structure or scalar value
+      # @return [Object] transformed hash/array, or the original scalar
+      #
       def deep_stringify_keys(obj)
         case obj
         when Hash
@@ -112,10 +143,12 @@ module AuthProto
         end
       end
 
-      # Verifies a signed JWS
-      # @param signed_jws [String] The complete signed JWS to verify
-      # @return [Boolean] True if signature is valid
-      # @raise [KeyError] if verification fails
+      # Verifies a compact JWS using this keypair.
+      #
+      # @param signed_jws [String, JOSE::SignedBinary] complete signed JWS
+      # @return [Boolean] whether the signature is valid
+      # @raise [KeyError] if decoding or verification raises an error
+      #
       def verify(signed_jws)
         verified, _payload, = @keypair.verify(signed_jws)
         verified
@@ -123,10 +156,12 @@ module AuthProto
         raise KeyError, "Failed to verify signature: #{e.message}"
       end
 
-      # Exports the keypair in JWK format
-      # @param include_private [Boolean] Whether to include private key
-      # @return [Hash] JWK representation of the keypair
+      # Exports this keypair as a JOSE map.
+      #
+      # @param include_private [Boolean] include secret `d` key material when `true`
+      # @return [JOSE::Map] JWK fields; call `to_h` for a Ruby hash
       # @raise [KeyError] if export fails
+      #
       def to_jwk(include_private: false)
         key = include_private ? @keypair : @keypair.to_public
         key.to_map
@@ -134,10 +169,12 @@ module AuthProto
         raise KeyError, "Failed to export key: #{e.message}"
       end
 
-      # Creates a KeyManager instance from a JWK
-      # @param jwk [Hash] JWK representation of a keypair
-      # @return [KeyManager] New KeyManager instance
-      # @raise [KeyError] if import fails
+      # Imports an EC P-256 JWK and validates that it can sign and verify.
+      #
+      # @param jwk [Hash{String => Object}, JOSE::Map] JWK including private key material
+      # @return [KeyManager] imported key manager
+      # @raise [KeyError] if import or key validation fails
+      #
       def self.from_jwk(jwk)
         keypair = JOSE::JWK.from_map(jwk)
         new(keypair)

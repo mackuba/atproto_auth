@@ -6,6 +6,8 @@ require 'uri'
 
 module AuthProto
   module PAR
+
+    #
     # Client for making Pushed Authorization Requests (PAR) according to RFC 9126.
     # Handles submitting authorization parameters to the PAR endpoint and building
     # the subsequent authorization URL.
@@ -19,7 +21,8 @@ module AuthProto
     #
     # @example Basic PAR flow
     #   client = AuthProto::PAR::Client.new(
-    #     endpoint: "https://auth.example.com/par"
+    #     endpoint: "https://auth.example.com/par",
+    #     dpop_client: AuthProto::DPoP::Client.new
     #   )
     #
     #   # Create and submit PAR request using builder pattern
@@ -48,18 +51,31 @@ module AuthProto
     #     config.client_assertion = jwt_token
     #   end
     #
-    # @example With DPoP proof
-    #   request = AuthProto::PAR::Request.build do |config|
-    #     # ... basic parameters ...
-    #     config.dpop_proof = dpop_proof_jwt
-    #   end
+    # All requests use HTTPS and include a fresh DPoP proof from the supplied
+    # DPoP client. Nonce challenges are retried once with a new proof. The client
+    # validates PAR responses before returning a request URI.
     #
-    # All requests are made using HTTPS and include proper content-type headers.
-    # DPoP proofs can be included for enhanced security. The client validates
-    # all responses and provides clear error messages for any failures.
-    class Client
-      attr_reader :endpoint, :dpop_client, :nonce_manager
 
+    class Client
+
+      # HTTPS pushed authorization request endpoint.
+      # @return [String]
+      attr_reader :endpoint
+
+      # DPoP client used to sign requests.
+      # @return [DPoP::Client]
+      attr_reader :dpop_client
+
+      # Nonce manager belonging to the DPoP client.
+      # @return [DPoP::NonceManager]
+      attr_reader :nonce_manager
+
+      # Creates a PAR transport using the global HTTP client and supplied DPoP client.
+      #
+      # @param endpoint [String] HTTPS PAR endpoint
+      # @param dpop_client [DPoP::Client] proof generator and nonce tracker
+      # @raise [Error] if the endpoint is malformed or does not use HTTPS
+      #
       def initialize(endpoint:, dpop_client:)
         @endpoint = endpoint
         @dpop_client = dpop_client
@@ -68,9 +84,11 @@ module AuthProto
       end
 
       # Submits a PAR request, handling DPoP nonce requirements
+      #
       # @param request [Request] The request to submit
       # @return [Response] The PAR response
       # @raise [Error] if request fails
+      #
       def submit(request)
         # Try the initial request
         response = make_request(request)
@@ -95,6 +113,12 @@ module AuthProto
         raise Error, "PAR request failed: #{e.message}"
       end
 
+      # Reads a nonce from a transport response hash.
+      #
+      # @param response [Hash{Symbol => Object}] response containing a `:headers` hash with a `DPoP-Nonce` header
+      # @return [String] server-provided nonce
+      # @raise [Error] if no supported nonce header is present
+      #
       def extract_nonce(response)
         # Try all possible header key formats
         headers = response[:headers]
@@ -107,11 +131,16 @@ module AuthProto
         nonce
       end
 
-      # Builds authorization URL from PAR response
-      # @param authorize_endpoint [String] Authorization endpoint URL
-      # @param request_uri [String] PAR request_uri
-      # @param client_id [String] OAuth client_id
-      # @return [String] Authorization URL
+      # Builds the browser URL using the client ID and returned PAR request URI.
+      #
+      # The endpoint's existing query is replaced by these two parameters.
+      #
+      # @param authorize_endpoint [String] authorization endpoint URL
+      # @param request_uri [String] request URI from {Response#request_uri}
+      # @param client_id [String] OAuth client ID
+      # @return [String] browser authorization URL
+      # @raise [URI::InvalidURIError] if the authorization endpoint cannot be parsed
+      #
       def authorization_url(authorize_endpoint:, request_uri:, client_id:)
         uri = URI(authorize_endpoint)
         uri.query = encode_params(

@@ -2,8 +2,15 @@
 
 module AuthProto
   module Serialization
+
+    #
     # Handles serialization of DPoP keys
+    #
+
     class DPoPKey < Base
+
+      # Returns the envelope type used by this serializer.
+      # @return [String] `DPoPKey`
       def type_identifier
         "DPoPKey"
       end
@@ -13,8 +20,7 @@ module AuthProto
       def validate_object!(obj)
         return if obj.is_a?(AuthProto::DPoP::KeyManager)
 
-        raise ValidationError,
-              "Expected KeyManager object, got #{obj.class}"
+        raise ValidationError, "Expected KeyManager object, got #{obj.class}"
       end
 
       def serialize_data(obj)

@@ -2,6 +2,8 @@
 
 module AuthProto
   module Identity
+
+    #
     # Represents and validates a DID Document in the AT Protocol.
     #
     # DID Documents contain critical service information about user accounts, including:
@@ -10,10 +12,10 @@ module AuthProto
     # - Key material for identity verification
     # - Service endpoints for various protocols
     #
-    # This class handles both current and legacy DID document formats, providing
-    # a consistent interface for accessing and validating document data.
+    # Accepts either a top-level `pds` field or a PDS service entry, providing a
+    # consistent interface for accessing and validating document data.
     #
-    # @example Creating a document from JSON
+    # @example With a top-level PDS endpoint
     #   data = {
     #     "id" => "did:plc:abc123",
     #     "alsoKnownAs" => ["at://alice.example.com"],
@@ -24,8 +26,8 @@ module AuthProto
     #   puts doc.pds                    # => "https://pds.example.com"
     #   puts doc.has_handle?("alice.example.com")  # => true
     #
-    # @example Handling legacy format
-    #   legacy_data = {
+    # @example With a PDS service entry
+    #   service_data = {
     #     "id" => "did:plc:abc123",
     #     "service" => [{
     #       "id" => "#atproto_pds",
@@ -33,14 +35,40 @@ module AuthProto
     #       "serviceEndpoint" => "https://pds.example.com"
     #     }]
     #   }
-    #   doc = AuthProto::Identity::Document.new(legacy_data)
+    #   doc = AuthProto::Identity::Document.new(service_data)
     #   puts doc.pds  # => "https://pds.example.com"
-    class Document
-      attr_reader :did, :rotation_keys, :also_known_as, :services, :pds
+    #
 
-      # Creates a new Document from parsed JSON
-      # @param data [Hash] Parsed DID document data
-      # @raise [DocumentError] if document is invalid
+    class Document
+
+      # DID from the document `id` field.
+      # @return [String]
+      attr_reader :did
+
+      # `publicKeyMultibase` values extracted from verification methods.
+      # @return [Array<String, nil>]
+      attr_reader :rotation_keys
+
+      # Alternative account identifiers, including `at://` handles.
+      # @return [Array<String>]
+      attr_reader :also_known_as
+
+      # Service entries from the document, or an empty array.
+      # @return [Array<Hash{String => Object}>]
+      attr_reader :services
+
+      # PDS endpoint from `pds` or an `AtprotoPersonalDataServer` service.
+      # @return [String]
+      attr_reader :pds
+
+      # Validates a parsed DID document and extracts identity/service fields.
+      #
+      # Accepts a top-level `pds` endpoint or an `AtprotoPersonalDataServer` service.
+      #
+      # @param data [Hash{String => Object}] parsed DID document
+      # @raise [DocumentError] if the document lacks an ID, valid services or a PDS endpoint
+      # @raise [Identity::Error] if the DID prefix is unsupported
+      #
       def initialize(data)
         validate_document!(data)
 
@@ -52,8 +80,10 @@ module AuthProto
       end
 
       # Checks if this document contains a specific handle
+      #
       # @param handle [String] Handle to check (with or without @ prefix)
       # @return [Boolean] true if handle is listed in alsoKnownAs
+      #
       def has_handle?(handle)
         normalized = handle.start_with?("@") ? handle[1..] : handle
         @also_known_as.any? do |aka|

@@ -2,18 +2,33 @@
 
 module AuthProto
   module State
+
+    #
     # Manages active OAuth sessions with secure persistent storage
+    #
+
     class SessionManager
+
+      # Creates a session manager and its encrypted session serializer.
+      # @raise [ArgumentError] if `ATPROTO_MASTER_KEY` is not valid Base64
+      #
       def initialize
         @serializer = Serialization::Session.new
       end
 
-      # Creates and stores a new session
+      # Creates and stores a session and its state-token lookup under a storage lock.
+      #
       # @param client_id [String] OAuth client ID
-      # @param scope [String] Requested scope
-      # @param auth_server [AuthorizationServer, nil] Optional pre-resolved auth server
-      # @param did [String, nil] Optional pre-resolved DID
-      # @return [Session] The created session
+      # @param scope [String] requested space-separated scopes
+      # @param auth_server [ServerMetadata::AuthorizationServer, nil] pre-resolved authorization server
+      # @param did [String, nil] pre-resolved account DID
+      #
+      # @return [Session] newly created session
+      # @raise [PKCE::Error] if session PKCE generation fails
+      # @raise [Storage::StorageError] if writing or locking fails
+      # @raise [Serialization::ValidationError] if the session cannot be serialized
+      # @raise [Encryption::EncryptionError] if sensitive fields cannot be encrypted
+      #
       def create_session(client_id:, scope:, auth_server: nil, did: nil)
         session = Session.new(
           client_id: client_id,
@@ -35,9 +50,14 @@ module AuthProto
         session
       end
 
-      # Updates an existing session
-      # @return [Session] The session to update
-      # @return [Session] The updated session
+      # Persists a session and updates its state-token lookup under a storage lock.
+      #
+      # @param session [Session] session to persist
+      # @return [Session] the supplied session
+      # @raise [Storage::StorageError] if writing or locking fails
+      # @raise [Serialization::ValidationError] if the session cannot be serialized
+      # @raise [Encryption::EncryptionError] if sensitive fields cannot be encrypted
+      #
       def update_session(session)
         session_key = Storage::KeyBuilder.session_key(session.session_id)
 
@@ -52,9 +72,14 @@ module AuthProto
         session
       end
 
-      # Retrieves a session by ID
-      # @param session_id [String] Session ID to look up
-      # @return [Session, nil] The session if found
+      # Loads and decrypts a session by ID.
+      #
+      # Returns `nil` for missing, unreadable or malformed sessions and for expired
+      # sessions that have no refresh token. Read/deserialization errors are logged.
+      #
+      # @param session_id [String] session identifier
+      # @return [Session, nil] restored session, or `nil` if unavailable
+      #
       def get_session(session_id)
         session_key = Storage::KeyBuilder.session_key(session_id)
 
@@ -77,9 +102,13 @@ module AuthProto
         end
       end
 
-      # Finds a session by state token
-      # @param state [String] State token to look up
-      # @return [Session, nil] The session if found
+      # Finds a stored session using its OAuth callback state token.
+      #
+      # Storage read errors are logged and treated as a missing session.
+      #
+      # @param state [String, nil] callback state token
+      # @return [Session, nil] restored session, or `nil` if unavailable
+      #
       def get_session_by_state(state)
         return nil unless state
 
@@ -96,9 +125,12 @@ module AuthProto
         get_session(session_id)
       end
 
-      # Removes a session
-      # @param session_id [String] Session ID to remove
+      # Deletes a session and its state mapping if it can be retrieved.
+      #
+      # @param session_id [String] session identifier
       # @return [void]
+      # @raise [Storage::StorageError] if deletion or locking fails
+      #
       def remove_session(session_id)
         session = get_session(session_id)
         return unless session
@@ -112,8 +144,11 @@ module AuthProto
         end
       end
 
-      # Removes all expired sessions
+      # Provides an expiry cleanup hook; currently performs no work.
+      # Expiry is handled through backend TTLs and retrieval validation.
+      #
       # @return [void]
+      #
       def cleanup_expired
         # No-op - expiry handled by storage TTL and retrieval validation
       end
