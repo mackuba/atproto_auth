@@ -9,8 +9,7 @@ gem 'irb'
 gem 'rake', '~> 13.0'
 gem 'rbs', '~> 3.6'
 
-gem 'minitest', '~> 5.25'
-gem 'minitest-reporters', '~> 1.7'
+gem 'rspec', '~> 3.13'
 gem 'mocha', '~> 2.6'
 gem 'webmock', '~> 3.24'
 

@@ -10,16 +10,15 @@ GEM
   specs:
     addressable (2.9.0)
       public_suffix (>= 2.0.2, < 8.0)
-    ansi (1.6.0)
     base64 (0.3.0)
     bigdecimal (4.1.2)
-    builder (3.3.0)
     concurrent-ruby (1.3.8)
     connection_pool (3.0.2)
     crack (1.0.1)
       bigdecimal
       rexml
     date (3.6.0)
+    diff-lcs (1.6.2)
     erb (6.0.7)
     hashdiff (1.2.1)
     immutable-ruby (0.2.0)
@@ -39,12 +38,6 @@ GEM
     logger (1.7.0)
     minisky (0.5.1)
       base64 (~> 0.1)
-    minitest (5.27.0)
-    minitest-reporters (1.8.0)
-      ansi
-      builder
-      minitest (>= 5.0, < 7)
-      ruby-progressbar
     mocha (2.8.2)
       ruby2_keywords (>= 0.0.5)
     pp (0.6.4)
@@ -71,7 +64,19 @@ GEM
     reline (0.7.0)
       io-console (~> 0.5)
     rexml (3.4.4)
-    ruby-progressbar (1.13.0)
+    rspec (3.13.2)
+      rspec-core (~> 3.13.0)
+      rspec-expectations (~> 3.13.0)
+      rspec-mocks (~> 3.13.0)
+    rspec-core (3.13.6)
+      rspec-support (~> 3.13.0)
+    rspec-expectations (3.13.5)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.13.0)
+    rspec-mocks (3.13.8)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.13.0)
+    rspec-support (3.13.7)
     ruby2_keywords (0.0.5)
     sorted_set (1.1.0)
       rbtree
@@ -92,12 +97,11 @@ DEPENDENCIES
   atproto_auth!
   irb
   minisky (~> 0.5.1)
-  minitest (~> 5.25)
-  minitest-reporters (~> 1.7)
   mocha (~> 2.6)
   rake (~> 13.0)
   rbs (~> 3.6)
   redis (~> 5.4)
+  rspec (~> 3.13)
   sqlite3 (~> 2.9)
   webmock (~> 3.24)
 
