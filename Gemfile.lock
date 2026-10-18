@@ -47,8 +47,6 @@ GEM
       ruby-progressbar
     mocha (2.8.2)
       ruby2_keywords (>= 0.0.5)
-    mutex_m (0.3.0)
-    parallel (1.28.0)
     pp (0.6.4)
       prettyprint
     prettyprint (0.2.1)
@@ -97,8 +95,6 @@ DEPENDENCIES
   minitest (~> 5.25)
   minitest-reporters (~> 1.7)
   mocha (~> 2.6)
-  mutex_m (~> 0.3)
-  parallel (~> 1.28)
   rake (~> 13.0)
   rbs (~> 3.6)
   redis (~> 5.4)

@@ -1,21 +1,20 @@
 # frozen_string_literal: true
 
-source "https://rubygems.org"
+source 'https://rubygems.org'
 
 # Specify your gem's dependencies in atproto_auth.gemspec
 gemspec
 
-gem "minisky", "~> 0.5.1", require: false
-gem "minitest", "~> 5.25"
-gem "minitest-reporters", "~> 1.7"
-gem "mocha", "~> 2.6"
-gem "mutex_m", "~> 0.3"
-gem "rake", "~> 13.0"
-gem "rbs", "~> 3.6"
-gem "redis", "~> 5.4"
-gem "sqlite3", "~> 2.9"
-gem "webmock", "~> 3.24"
-gem "irb"
+gem 'irb'
+gem 'rake', '~> 13.0'
+gem 'rbs', '~> 3.6'
 
-# force an older version that works with Ruby 3.2
-gem "parallel", "~> 1.28"
+gem 'minitest', '~> 5.25'
+gem 'minitest-reporters', '~> 1.7'
+gem 'mocha', '~> 2.6'
+gem 'webmock', '~> 3.24'
+
+gem 'redis', '~> 5.4'
+gem 'sqlite3', '~> 2.9'
+
+gem 'minisky', '~> 0.5.1'
